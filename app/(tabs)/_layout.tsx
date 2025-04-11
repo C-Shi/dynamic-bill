@@ -11,6 +11,9 @@ export default function Layout() {
         headerStyle: {
           backgroundColor: Colors.Primary,
         },
+        sceneStyle: {
+          backgroundColor: Colors.Background,
+        },
         headerTitleStyle: {
           color: Colors.Background,
           marginBottom: 10,
@@ -32,6 +35,9 @@ export default function Layout() {
         name="index"
         options={{
           title: "Activities",
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
           tabBarActiveTintColor: Colors.Secondary,
           tabBarIcon: ({ focused }) => (
             <Ionicons
@@ -42,10 +48,13 @@ export default function Layout() {
           ),
         }}
       ></Tabs.Screen>
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
           tabBarActiveTintColor: Colors.Secondary,
           tabBarIcon: ({ focused }) => (
             <Ionicons
@@ -55,7 +64,7 @@ export default function Layout() {
             ></Ionicons>
           ),
         }}
-      ></Tabs.Screen>
+      ></Tabs.Screen> */}
     </Tabs>
   );
 }
@@ -69,6 +78,6 @@ const styles = StyleSheet.create({
     color: Colors.Secondary,
   },
   barIconInactive: {
-    color: Colors.Text,
+    color: Colors.Main,
   },
 });

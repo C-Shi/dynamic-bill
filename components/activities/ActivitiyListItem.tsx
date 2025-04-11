@@ -1,0 +1,106 @@
+import { View, Text, StyleSheet } from "react-native";
+import Avatar from "@/components/shared/Avatar";
+import Colors from "@/constant/Color";
+import { FontAwesome } from "@expo/vector-icons";
+
+export default function ActivityListItem() {
+  const participants = ["Kyle", "Jessie", "Jack", "Lucas", "Andrew", "Parth"];
+  const visibleParticipant = participants.slice(0, 4);
+  const invisibleParticipantCount = participants.length - 4;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.summaryLine}>
+        <Text style={styles.activityName}>Summer Beach Vacation</Text>
+        <Text style={styles.totalAmount}>$1,250.75</Text>
+      </View>
+      <View style={styles.detailLine}>
+        <Text style={styles.detail}>
+          5 people {`\u2022`} Created on: 2025-04-02{" "}
+        </Text>
+      </View>
+      <View style={styles.participantLine}>
+        <View style={styles.participants}>
+          {visibleParticipant.map((name, index) => (
+            <Avatar
+              key={name}
+              name={name}
+              style={{
+                marginLeft: index === 0 ? 0 : -10,
+                zIndex: 10 + index,
+              }}
+            />
+          ))}
+          {invisibleParticipantCount > 0 && (
+            <View style={styles.extraAvatar}>
+              <Text style={styles.extraText}>+{invisibleParticipantCount}</Text>
+            </View>
+          )}
+        </View>
+        <View>
+          <FontAwesome name="angle-right" size={24} color={Colors.Primary} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 15,
+    backgroundColor: Colors.Card,
+    marginVertical: 5,
+    marginHorizontal: 5,
+    borderRadius: 5,
+  },
+  summaryLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  activityName: {
+    color: Colors.Main,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  totalAmount: {
+    color: Colors.Primary,
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  detailLine: {
+    marginBottom: 10,
+  },
+  detail: {
+    color: Colors.SubText,
+    fontSize: 12,
+  },
+  participantLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  participants: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
+  avatarWrapper: {
+    zIndex: 1,
+  },
+  extraAvatar: {
+    backgroundColor: Colors.SubText,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: -10,
+    zIndex: 100,
+    borderWidth: 2,
+    borderColor: "white",
+  },
+  extraText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+});

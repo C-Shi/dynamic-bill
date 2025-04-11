@@ -1,5 +1,5 @@
-import { ScrollView } from "react-native";
+import ActivityList from "@/components/activities/ActivityList";
 
 export default function Activity() {
-  return <ScrollView></ScrollView>;
+  return <ActivityList></ActivityList>;
 }
