@@ -2,35 +2,43 @@ import { View, Text, StyleSheet } from "react-native";
 import Avatar from "@/components/shared/Avatar";
 import Colors from "@/constant/Color";
 import { FontAwesome } from "@expo/vector-icons";
+import { Activity } from "@/model/Activity";
+import { Key } from "react";
 
-export default function ActivityListItem() {
-  const participants = ["Kyle", "Jessie", "Jack", "Lucas", "Andrew", "Parth"];
+export default function ActivityListItem({ activity }: { activity: Activity }) {
+  const participants = activity.participants;
   const visibleParticipant = participants.slice(0, 4);
   const invisibleParticipantCount = participants.length - 4;
 
   return (
     <View style={styles.container}>
       <View style={styles.summaryLine}>
-        <Text style={styles.activityName}>Summer Beach Vacation</Text>
-        <Text style={styles.totalAmount}>$1,250.75</Text>
+        <Text style={styles.activityName}>{activity.title}</Text>
+        <Text style={styles.totalAmount}>{activity.totalAmountDisplay}</Text>
       </View>
       <View style={styles.detailLine}>
         <Text style={styles.detail}>
-          5 people {`\u2022`} Created on: 2025-04-02{" "}
+          {participants.length} people {`\u2022`} Created on:{" "}
+          {activity.createdAt.toLocaleDateString()}
         </Text>
       </View>
       <View style={styles.participantLine}>
         <View style={styles.participants}>
-          {visibleParticipant.map((name, index) => (
-            <Avatar
-              key={name}
-              name={name}
-              style={{
-                marginLeft: index === 0 ? 0 : -10,
-                zIndex: 10 + index,
-              }}
-            />
-          ))}
+          {visibleParticipant.map(
+            (
+              p: { id: Key | null | undefined; name: string },
+              index: number
+            ): any => (
+              <Avatar
+                key={p.id}
+                name={p.name}
+                style={{
+                  marginLeft: index === 0 ? 0 : -10,
+                  zIndex: 10 + index,
+                }}
+              />
+            )
+          )}
           {invisibleParticipantCount > 0 && (
             <View style={styles.extraAvatar}>
               <Text style={styles.extraText}>+{invisibleParticipantCount}</Text>

@@ -1,6 +1,6 @@
 import { Participant } from './Participant';
 import { Expense } from './Expense';
-import { BaseEntity, BaseModel } from './Core';
+import { Model } from './Core';
 
 export class ParticipantExpenseEntity extends BaseEntity {
     constructor(participantExpense: {

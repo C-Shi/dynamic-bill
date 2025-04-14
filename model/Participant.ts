@@ -1,39 +1,46 @@
 import { Expense } from './Expense';
-import { ParticipantExpense } from './ParticipantExpense';
-import { BaseEntity, BaseModel } from './Core';
+import { Model } from './Core';
+import { DB } from '@/utils/db';
 
-export class ParticipantEntity extends BaseEntity {
-    constructor(participant: { id?: string, name: string, activityId: string, createdAt?: Date }) {
-        super({ id: participant.id, createdAt: participant.createdAt })
+export class Participant extends Model {
+    expenses: Expense[] = [];
+
+    constructor(participant: { [key: string]: any }) {
+        super(participant)
         this.name = participant.name;
         this.activityId = participant.activityId;
     }
 
     name: string;
     activityId: string;
-}
-
-export class Participant extends ParticipantEntity implements BaseModel<ParticipantEntity> {
-    expenses: Expense[] = []
-    constructor(participant: ParticipantEntity, participantExpenses?: ParticipantExpense[]) {
-        super(participant)
-
-        if (participantExpenses) {
-            this.expenses = participantExpenses.map(relation => relation.expense);
-        }
-    }
 
     addExpense(expense: Expense) {
         this.expenses.push(expense)
     }
 
-    toEntity(): ParticipantEntity {
-        return new ParticipantEntity({
+    public toEntity(): { [key: string]: any } {
+        return {
             id: this.id,
             name: this.name,
             activityId: this.activityId,
             createdAt: this.createdAt
-        })
+        }
 
+    }
+
+    public static async get(where?: { [key: string]: [string, string] }): Promise<Participant[]> {
+        const db = await DB.db()
+        let query = "SELECT * FROM participants";
+        let params: string[] = []
+        if (where) {
+            let temp: string[] = []
+            Object.keys(where).forEach(key => {
+                temp.push(`${key} ${where[key][0]} ?`)
+                params.push(where[key][1])
+            })
+            query = query + " where " + temp.join(' AND ')
+        }
+        const participants = await db.getAllAsync(query, params);
+        return participants.map((p: any) => new this(p))
     }
 }
