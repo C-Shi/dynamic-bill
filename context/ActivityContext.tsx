@@ -44,8 +44,8 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     await Promise.all(
       activitiesList.map(async (activity) => {
         const [expenses, participants] = await Promise.all([
-          Expense.get({ activityId: ["=", activity.id] }),
-          Participant.get({ activityId: ["=", activity.id] }),
+          Expense.get({ activity_id: ["=", activity.id] }),
+          Participant.get({ activity_id: ["=", activity.id] }),
         ]);
 
         activity.participants = participants;

@@ -41,6 +41,8 @@ export class Participant extends Model {
             query = query + " where " + temp.join(' AND ')
         }
         const participants = await db.getAllAsync(query, params);
-        return participants.map((p: any) => new this(p))
+        return participants.map((p: any) => {
+            return new this({ ...p, createdAt: p.created_at, activityId: p.activity_id })
+        })
     }
 }

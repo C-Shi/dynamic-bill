@@ -1,8 +1,9 @@
 import { ActivityContextProvider } from "@/context/ActivityContext";
 import { Stack } from "expo-router";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { DB } from "@/utils/db";
+import Colors from "@/constant/Color";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -32,6 +33,35 @@ export default function RootLayout() {
           name="(tabs)"
           options={{ headerShown: false }}
         ></Stack.Screen>
+        <Stack.Screen
+          name="activities/new"
+          options={{
+            presentation: "modal",
+            title: "Add Activity",
+            headerTitleAlign: "left",
+            headerTintColor: Colors.Card,
+            headerStyle: {
+              backgroundColor: Colors.Primary,
+            },
+            contentStyle: {
+              backgroundColor: Colors.Background,
+            },
+            // to align title right in iOS
+            headerTitle: (props) => (
+              <View style={{ flex: 1, flexDirection: "row", marginLeft: -10 }}>
+                <Text
+                  style={{
+                    color: Colors.Background,
+                    fontSize: 18,
+                    fontWeight: 500,
+                  }}
+                >
+                  {props.children}
+                </Text>
+              </View>
+            ),
+          }}
+        />
       </Stack>
     </ActivityContextProvider>
   );

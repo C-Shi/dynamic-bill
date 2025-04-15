@@ -1,17 +1,24 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import Avatar from "@/components/shared/Avatar";
 import Colors from "@/constant/Color";
 import { FontAwesome } from "@expo/vector-icons";
 import { Activity } from "@/model/Activity";
 import { Key } from "react";
+import { useRouter } from "expo-router";
 
 export default function ActivityListItem({ activity }: { activity: Activity }) {
+  const router = useRouter();
   const participants = activity.participants;
   const visibleParticipant = participants.slice(0, 4);
   const invisibleParticipantCount = participants.length - 4;
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={styles.container}
+      onPress={() => {
+        router.push(`/activities/${activity.id}`);
+      }}
+    >
       <View style={styles.summaryLine}>
         <Text style={styles.activityName}>{activity.title}</Text>
         <Text style={styles.totalAmount}>{activity.totalAmountDisplay}</Text>
@@ -49,7 +56,7 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
           <FontAwesome name="angle-right" size={24} color={Colors.Primary} />
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

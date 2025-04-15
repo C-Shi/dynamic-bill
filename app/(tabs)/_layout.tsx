@@ -1,9 +1,10 @@
-import { Tabs } from "expo-router";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Tabs, useRouter } from "expo-router";
+import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "@/constant/Color";
 
 export default function Layout() {
+  const router = useRouter();
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +21,7 @@ export default function Layout() {
         },
         headerTitleAlign: "left",
         headerRight: () => (
-          <Pressable>
+          <Pressable onPress={() => router.navigate("/activities/new")}>
             <Ionicons
               name="add-circle-outline"
               size={28}

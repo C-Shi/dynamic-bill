@@ -49,6 +49,6 @@ export class Expense extends Model {
             query = query + " WHERE " + temp.join(' AND ')
         }
         const expenses = await db.getAllAsync(query, params);
-        return expenses.map((e: any) => new this(e))
+        return expenses.map((e: any) => new this({ ...e, activityId: e.activity_id, paidBy: e.paid_by }))
     }
 }

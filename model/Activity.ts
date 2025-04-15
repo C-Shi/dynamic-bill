@@ -6,16 +6,25 @@ import { Expense } from "./Expense";
 export class Activity extends Model {
     protected static _table: string = 'activities';
 
-    constructor(activity: { [key: string]: any }) {
+    constructor(activity?: { [key: string]: any }) {
         super(activity)
-        this.title = activity.title ?? "";
-        if (activity.note) {
+        this.title = activity?.title ?? "";
+        if (activity?.note) {
             this.note = activity.note;
+        }
+        if (activity?.budget) {
+            this.budget = activity.budget;
+        }
+        if (activity?.typeId) {
+            this.budget = activity.type;
         }
     }
 
     title!: string;
     note?: string;
+    budget?: number;
+    typeId?: number;
+
     participants: Participant[] = [];
     expenses: Expense[] = [];
 
@@ -44,6 +53,12 @@ export class Activity extends Model {
         expenses.forEach(this.addExpense)
     }
 
+    public async save() {
+        const data = this.toEntity()
+        const db = await DB.db()
+        db.runAsync(`INSERT INTO activities `)
+    }
+
     get totalAmount() {
         return this.expenses.reduce((prev, curr) => {
             return prev + curr.amount
@@ -63,7 +78,9 @@ export class Activity extends Model {
 
     public static async all(): Promise<Activity[]> {
         const db = await DB.db()
-        const activities = await db.getAllAsync('SELECT * FROM activities ORDER BY createdAt DESC')
-        return activities.map((d: any) => new this(d))
+        const activities = await db.getAllAsync('SELECT * FROM activities ORDER BY created_at DESC')
+        return activities.map((d: any) => {
+            return new this({ ...d, createdAt: d.created_at })
+        })
     }
 }

@@ -7,7 +7,7 @@ export abstract class Model {
     protected static _table: string;
     private static _query: string;
 
-    constructor(data: { id?: string; createdAt?: Date }) {
+    constructor(data?: { id?: string; createdAt?: Date }) {
         this.id = data?.id ?? uuidv4()
         this.createdAt = data?.createdAt ? new Date(data.createdAt) : new Date();
     }
