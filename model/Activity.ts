@@ -15,15 +15,15 @@ export class Activity extends Model {
         if (activity?.budget) {
             this.budget = activity.budget;
         }
-        if (activity?.typeId) {
-            this.budget = activity.type;
+        if (activity?.type) {
+            this.type = activity.type;
         }
     }
 
     title!: string;
     note?: string;
     budget?: number;
-    typeId?: number;
+    type?: number;
 
     participants: Participant[] = [];
     expenses: Expense[] = [];
@@ -31,9 +31,11 @@ export class Activity extends Model {
     public toEntity(): { [key: string]: any } {
         return {
             id: this.id,
-            createdAt: this.createdAt,
-            title: this.title,
-            note: this.note
+            title: this.title ?? '',
+            budget: this.budget ?? null,
+            note: this.note ?? null,
+            type: this.type ?? 'Other',
+            created_at: this.createdAt.toISOString(),
         }
     }
 
@@ -56,7 +58,27 @@ export class Activity extends Model {
     public async save() {
         const data = this.toEntity()
         const db = await DB.db()
-        db.runAsync(`INSERT INTO activities `)
+        const columns = Object.keys(data)
+        const values = Object.values(data)
+        const query = `INSERT INTO activities ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
+
+        try {
+            return await db.runAsync(query, values)
+        } catch (e) {
+            if (__DEV__) {
+                console.log(e)
+            }
+            console.error('[INSERT FAIL] - activities')
+        }
+    }
+
+    public async delete() {
+        const db = await DB.db()
+        try {
+            return await db.runAsync('DELETE FROM activities WHERE id = ?;', [this.id])
+        } catch {
+            console.error('[DELETE FAIL] - activities')
+        }
     }
 
     get totalAmount() {
@@ -70,6 +92,15 @@ export class Activity extends Model {
             style: "currency",
             currency: "CAD"
         }).format(this.totalAmount)
+    }
+
+    get budgetAmountDisplay(): string | void {
+        if (this.budget) {
+            return Intl.NumberFormat("en-CA", {
+                style: "currency",
+                currency: "CAD"
+            }).format(this.budget)
+        }
     }
 
     get totalParticipant() {

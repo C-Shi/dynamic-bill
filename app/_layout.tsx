@@ -13,10 +13,10 @@ export default function RootLayout() {
 
   const initApp = async () => {
     try {
-      await DB.init();
-      if (__DEV__) {
-        await DB.seed();
-      }
+      // await DB.init();
+      // if (__DEV__) {
+      //   await DB.seed();
+      // }
       setReady(true);
     } catch (err) {
       console.log(err);

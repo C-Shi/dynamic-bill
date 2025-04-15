@@ -22,10 +22,24 @@ export class Participant extends Model {
         return {
             id: this.id,
             name: this.name,
-            activityId: this.activityId,
-            createdAt: this.createdAt
+            activity_id: this.activityId,
+            created_at: this.createdAt.toISOString()
         }
 
+    }
+
+    public async save() {
+        const data = this.toEntity()
+        const db = await DB.db()
+        const columns = Object.keys(data)
+        const values = Object.values(data)
+        const query = `INSERT INTO participants ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
+
+        try {
+            return await db.runAsync(query, values)
+        } catch {
+            console.error('[INSERT FAIL] - participants')
+        }
     }
 
     public static async get(where?: { [key: string]: [string, string] }): Promise<Participant[]> {

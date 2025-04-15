@@ -1,6 +1,6 @@
 import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ActivityType } from "@/model/ActivityType";
 import {
   View,
@@ -12,19 +12,25 @@ import {
   Platform,
   SafeAreaView,
   TouchableOpacity,
+  Switch,
+  Alert,
 } from "react-native";
 import TouchableCard from "@/components/shared/TouchableCard";
 import { useRouter } from "expo-router";
+import { Activity } from "@/model/Activity";
+import { ActivityContext } from "@/context/ActivityContext";
+import { Participant } from "@/model/Participant";
 
 export default function NewActivity() {
+  const activityCtx = useContext(ActivityContext);
   const router = useRouter();
   const [activityTypes, setActivityTypes] = useState([]);
   const [newActivity, setNewActivity] = useState({
     title: "",
     note: "",
-    budget: undefined,
+    budget: null,
     type: "Other",
-  });
+  } as { [key: string]: any });
 
   const [newParticipant, setNewParticipant] = useState("");
 
@@ -42,6 +48,7 @@ export default function NewActivity() {
   }
 
   function onAddParticipant() {
+    if (!newParticipant) return;
     setParticipantList((prev) => {
       return [...prev, newParticipant];
     });
@@ -58,7 +65,34 @@ export default function NewActivity() {
     });
   }
 
-  async function createActivity() {}
+  function onToggleBudget(val: boolean): void {
+    setNewActivity({ ...newActivity, budget: val ? 0 : null });
+  }
+
+  function onChangeBudget(val: string): void {
+    const regex = /^\d*\.?\d{0,2}$/;
+
+    if (regex.test(val)) {
+      setNewActivity({ ...newActivity, budget: val });
+    }
+  }
+
+  async function createActivity() {
+    if (!newActivity.title) {
+      Alert.alert("Activity Title is required");
+      return;
+    }
+    try {
+      const data = new Activity(newActivity);
+      data.participants = participantList.map(
+        (p: string) => new Participant({ name: p, activityId: data.id })
+      );
+      await activityCtx.add(data);
+      router.back();
+    } catch {
+      Alert.alert("Operation Failed!", "Unable to create activity");
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -89,8 +123,7 @@ export default function NewActivity() {
               maxLength={150}
               placeholder="eg: Bowling at bow bowling center"
             />
-            <Text style={styles.subLabel}>Budget</Text>
-            <TextInput style={styles.input} placeholder="eg: $1000.00" />
+
             <Text style={styles.subLabel}>Event Type</Text>
             <View style={styles.grid}>
               {activityTypes.map((item: { [key: string]: any }) => (
@@ -120,6 +153,39 @@ export default function NewActivity() {
                 </TouchableCard>
               ))}
             </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 16,
+              }}
+            >
+              <Text style={styles.subLabel}>Add Budget</Text>
+              <Switch
+                style={{
+                  transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
+                  marginBottom: 10,
+                }}
+                value={newActivity.budget !== null}
+                trackColor={{ true: Colors.Primary }}
+                onValueChange={onToggleBudget}
+              />
+            </View>
+            {newActivity.budget !== null ? (
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholder="eg: $1000.00"
+                onChangeText={onChangeBudget}
+                value={newActivity.budget}
+              />
+            ) : (
+              <Text style={styles.noBudget}>
+                This activity do not have a budget
+              </Text>
+            )}
           </View>
 
           <View style={styles.section}>
@@ -164,7 +230,7 @@ export default function NewActivity() {
             >
               <Text style={styles.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn}>
+            <TouchableOpacity style={styles.saveBtn} onPress={createActivity}>
               <Text style={styles.saveBtnText}>Create</Text>
             </TouchableOpacity>
           </View>
@@ -183,12 +249,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   label: {
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 10,
     fontWeight: "500",
   },
   subLabel: {
-    fontSize: 12,
+    fontSize: 16,
     marginBottom: 5,
     color: Colors.SubText,
   },
@@ -198,6 +264,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
+  },
+  noBudget: {
+    backgroundColor: Colors.Card,
+    padding: 15,
+    borderRadius: 5,
+    color: Colors.Main,
   },
   participantAdd: {
     position: "absolute",

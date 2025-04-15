@@ -6,8 +6,8 @@ import { Expense } from "@/model/Expense";
 
 type ActivityContextType = {
   activities: Activity[];
-  add: (activity: any) => Promise<any>;
-  remove: (activity: any) => Promise<any>;
+  add: (activity: Activity) => Promise<any>;
+  remove: (activity: Activity) => Promise<any>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -22,10 +22,10 @@ function reducer(
     case "GET_ACTIVITIES":
       return action.payload;
     case "ADD_ACTIVITY":
-      return [...state, action.payload];
+      return [action.payload, ...state];
     case "REMOVE_ACTIVITY":
       return state.filter(
-        (activity: Activity) => activity.id! == (action.payload as Activity).id
+        (activity: Activity) => activity.id !== (action.payload as Activity).id
       );
     default:
       return state;
@@ -59,17 +59,27 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const add = async (activity: any): Promise<any> => {
-    const newActivity = new Activity(activity);
-
-    // SPACE FOR Add newActivityEntity to db
-    dispatch({ type: "ADD_ACTIVITY", payload: newActivity });
+  const add = async (activity: Activity): Promise<any> => {
+    /** @todo Optimize save process - data consistency between state and db */
+    try {
+      await activity.save();
+      await Promise.allSettled(
+        activity.participants.map(async (p: Participant) => {
+          await p.save();
+        })
+      );
+      dispatch({ type: "ADD_ACTIVITY", payload: activity });
+    } finally {
+    }
   };
 
-  const remove = async (activity: any): Promise<any> => {
-    const removedActiity = new Activity(activity as Activity);
+  const remove = async (activity: Activity): Promise<any> => {
     // SPACE FOR Cascading delete
-    dispatch({ type: "REMOVE_ACTIVITY", payload: removedActiity });
+    try {
+      await activity.delete();
+      dispatch({ type: "REMOVE_ACTIVITY", payload: activity });
+    } finally {
+    }
   };
 
   const value = {

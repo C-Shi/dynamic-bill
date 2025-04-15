@@ -20,6 +20,11 @@ export class DB {
         }
         await db.withTransactionAsync(async () => {
             await db.execAsync(`
+                DROP TABLE activities;
+                DROP TABLE participants;
+                DROP TABLE expenses;
+                DROP TABLE participant_expenses;
+
                 CREATE TABLE IF NOT EXISTS activities (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
