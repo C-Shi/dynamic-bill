@@ -57,13 +57,12 @@ export class Activity extends Model {
 
     public async save() {
         const data = this.toEntity()
-        const db = await DB.db()
         const columns = Object.keys(data)
         const values = Object.values(data)
         const query = `INSERT INTO activities ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
 
         try {
-            return await db.runAsync(query, values)
+            return await DB.query(query, values)
         } catch (e) {
             if (__DEV__) {
                 console.log(e)
@@ -73,9 +72,8 @@ export class Activity extends Model {
     }
 
     public async delete() {
-        const db = await DB.db()
         try {
-            return await db.runAsync('DELETE FROM activities WHERE id = ?;', [this.id])
+            return await DB.query('DELETE FROM activities WHERE id = ?;', [this.id])
         } catch {
             console.error('[DELETE FAIL] - activities')
         }
@@ -104,12 +102,12 @@ export class Activity extends Model {
     }
 
     get totalParticipant() {
-        return 5
+        return this.participants.length
     }
 
     public static async all(): Promise<Activity[]> {
-        const db = await DB.db()
-        const activities = await db.getAllAsync('SELECT * FROM activities ORDER BY created_at DESC')
+        const activities = await DB.query('SELECT * FROM activities ORDER BY created_at DESC')
+        console.log(activities)
         return activities.map((d: any) => {
             return new this({ ...d, createdAt: d.created_at })
         })

@@ -37,7 +37,6 @@ export class Expense extends Model {
     }
 
     public static async get(where?: { [key: string]: [string, string] }): Promise<Expense[]> {
-        const db = await DB.db()
         let query = "SELECT * FROM expenses";
         let params: string[] = []
         if (where) {
@@ -48,7 +47,7 @@ export class Expense extends Model {
             })
             query = query + " WHERE " + temp.join(' AND ')
         }
-        const expenses = await db.getAllAsync(query, params);
+        const expenses = await DB.query(query, params);
         return expenses.map((e: any) => new this({ ...e, activityId: e.activity_id, paidBy: e.paid_by }))
     }
 }

@@ -1,20 +1,24 @@
 import * as SQLite from 'expo-sqlite';
 
-export class DB {
+interface IDatabaseAdapter {
+    db: any;
+    init(): Promise<void>;
+    seed(): Promise<void>;
+    query(query: string, params: any[]): Promise<void>;
+}
+
+class SQLiteAdapter {
     private static instance: SQLite.SQLiteDatabase | null = null;
-
-    private constructor() { }
-
     public static async db(): Promise<SQLite.SQLiteDatabase> {
-        if (DB.instance === null) {
-            DB.instance = await SQLite.openDatabaseAsync("app.db")
-            await DB.instance.execAsync("PRAGMA journal_mode = 'wal'")
+        if (SQLiteAdapter.instance === null) {
+            SQLiteAdapter.instance = await SQLite.openDatabaseAsync("app.db")
+            await SQLiteAdapter.instance.execAsync("PRAGMA journal_mode = 'wal'")
         }
-        return DB.instance
+        return SQLiteAdapter.instance
     }
 
     public static async init(): Promise<void> {
-        const db = await DB.db()
+        const db = await SQLiteAdapter.db()
         if (__DEV__) {
             console.log('Database location:', db.databasePath)
         }
@@ -73,7 +77,7 @@ export class DB {
     }
 
     public static async seed(): Promise<void> {
-        const db = await DB.db()
+        const db = await SQLiteAdapter.db()
         await db.withTransactionAsync(async () => {
             await db.execAsync(`
             DELETE FROM participant_expenses;
@@ -190,8 +194,33 @@ export class DB {
             ('Workshop', 'Educational or hands-on training events to learn something new', '🛠️'),
             ('Socials', 'General social gatherings or casual events for interaction', '🍹'),
             ('Other', 'Other activity not listed', '❓');
-
             `)
         })
+    }
+
+    public static async query(query: string, params: any[]): Promise<any> {
+        const db = await SQLiteAdapter.db()
+        return db.getAllAsync(query, params)
+
+    }
+}
+
+export class DB {
+    private static adapter: IDatabaseAdapter = SQLiteAdapter;
+
+    static setAdapter(adapter: IDatabaseAdapter) {
+        DB.adapter = adapter
+    }
+
+    static async init(): Promise<void> {
+        return DB.adapter.init()
+    }
+
+    static async seed(): Promise<void> {
+        return DB.adapter.seed()
+    }
+
+    static async query(query: string, params?: any): Promise<any> {
+        return DB.adapter.query(query, params)
     }
 }

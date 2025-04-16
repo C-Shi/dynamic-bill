@@ -30,20 +30,18 @@ export class Participant extends Model {
 
     public async save() {
         const data = this.toEntity()
-        const db = await DB.db()
         const columns = Object.keys(data)
         const values = Object.values(data)
         const query = `INSERT INTO participants ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
 
         try {
-            return await db.runAsync(query, values)
+            return await DB.query(query, values)
         } catch {
             console.error('[INSERT FAIL] - participants')
         }
     }
 
     public static async get(where?: { [key: string]: [string, string] }): Promise<Participant[]> {
-        const db = await DB.db()
         let query = "SELECT * FROM participants";
         let params: string[] = []
         if (where) {
@@ -54,7 +52,7 @@ export class Participant extends Model {
             })
             query = query + " where " + temp.join(' AND ')
         }
-        const participants = await db.getAllAsync(query, params);
+        const participants = await DB.query(query, params);
         return participants.map((p: any) => {
             return new this({ ...p, createdAt: p.created_at, activityId: p.activity_id })
         })
