@@ -79,12 +79,6 @@ export class Activity extends Model {
         }
     }
 
-    public async details() {
-        `SELECT * FROM participants WHERE activity_id = ?`
-        /** Check if participants */
-        /** Check if expenses */
-    }
-
     get totalAmount() {
         return this.expenses.reduce((prev, curr) => {
             return prev + curr.amount

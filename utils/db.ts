@@ -43,6 +43,8 @@ class SQLiteAdapter {
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 activity_id TEXT NOT NULL,
+                total_paid REAL DEFAULT 0,
+                total_owed REAL DEFAULT 0,
                 created_at TIMESTAMP NOT NULL,
                 FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
                 );

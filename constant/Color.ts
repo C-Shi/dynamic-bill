@@ -6,6 +6,7 @@ const Colors = {
     Main: "#2D3436",
     SubText: "#6C757D",
     Danger: "#FF3B30",
+    Success: "#16A34A",
     Dark: "#000000",
 }
 

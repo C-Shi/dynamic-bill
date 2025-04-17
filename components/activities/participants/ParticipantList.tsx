@@ -7,24 +7,35 @@ export default function ParticipantList({
 }: {
   participants: Participant[];
 }) {
-  const net = (p: any) => p.paid - p.owed;
+  const currencyHelper = (val: number) => {
+    return Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
+    }).format(val);
+  };
   return (
     <View style={styles.card}>
       <Text style={styles.tableHeader}>Participants</Text>
-      {participants.map((p, idx) => (
-        <View key={idx} style={styles.row}>
-          <Text>{p.name}</Text>
-          <Text>Paid: $10</Text>
-          <Text>Owed: $50</Text>
-          <Text
-            style={{
-              color: net(p) > 0 ? "green" : net(p) < 0 ? "red" : Colors.Main,
-            }}
-          >
-            Net: {net(p) > 0 ? "+" : ""}${net(p)}
-          </Text>
-        </View>
-      ))}
+      {participants.map((p, idx) => {
+        const paid = p.totalPaid;
+        const due = p.totalOwed;
+        const net = paid - due;
+
+        return (
+          <View key={idx} style={styles.row}>
+            <Text>{p.name}</Text>
+            <Text>Paid: {currencyHelper(paid)}</Text>
+            <Text>Due: {currencyHelper(due)}</Text>
+            <Text
+              style={{
+                color: net > 0 ? "green" : net < 0 ? "red" : Colors.Main,
+              }}
+            >
+              Net: {net > 0 ? "+" : ""}${net}
+            </Text>
+          </View>
+        );
+      })}
       <Button
         title="Add Participant"
         onPress={() => {}}

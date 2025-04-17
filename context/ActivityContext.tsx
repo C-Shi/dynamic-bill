@@ -9,7 +9,7 @@ type ActivityContextType = {
   add: (activity: Activity) => Promise<any>;
   remove: (activity: Activity) => Promise<any>;
   get: (id: string) => Activity;
-  detail: (activity: Activity, type: "expense" | "participant") => Promise<any>;
+  detail: (activity: Activity, type: Array<any>) => Promise<any>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -98,13 +98,26 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
 
   const detail = async (
     activity: Activity,
-    relation: "expense" | "participant"
+    relation: Array<any>
   ): Promise<any> => {
     /** Update inplace */
-    if (relation === "expense") {
-      await Promise.allSettled(
-        await activity.expenses.map(async (e) => await e.detail())
-      );
+    try {
+      if (relation.find((r) => r === "expense")) {
+        await Promise.allSettled(
+          await activity.expenses.map(async (e) => await e.detail())
+        );
+      }
+    } catch {
+      console.error("Unable to fetch expense detail for activity");
+    }
+    try {
+      if (relation.find((r) => r === "participant")) {
+        await Promise.allSettled(
+          await activity.participants.map(async (p) => await p.detail())
+        );
+      }
+    } catch {
+      console.error("Unable to fetch participant detail for activity");
     }
     /** Trigger state update */
     dispatch({ type: "FETCH_DETAIL", payload: activity });

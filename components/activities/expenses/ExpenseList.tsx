@@ -1,18 +1,13 @@
-import { ActivityContext } from "@/context/ActivityContext";
-import { Activity } from "@/model/Activity";
-import { useContext, useEffect } from "react";
+import { Expense } from "@/model/Expense";
+import { useEffect } from "react";
 import { View, Button, Text, StyleSheet } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
-export default function ExpenseList({ activity }: { activity: Activity }) {
-  const { detail } = useContext(ActivityContext);
-  useEffect(() => {
-    detail(activity, "expense");
-  }, []);
+export default function ExpenseList({ expenses }: { expenses: Expense[] }) {
   return (
     <View style={styles.card}>
       <Text style={styles.tableHeader}>Expenses</Text>
-      {activity.expenses.map((e, idx) => (
+      {expenses.map((e, idx) => (
         <View key={idx} style={styles.row}>
           <Text>{e.description}</Text>
           <Text>Amount: {e.amount}</Text>

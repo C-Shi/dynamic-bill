@@ -27,11 +27,10 @@ export class Expense extends Model {
         this.paidByParticipant = whoPay;
 
         const payForWho = await DB.query(
-            `SELECT * FROM participants JOIN participant_expenses ON
+            `SELECT participants.* FROM participants JOIN participant_expenses ON
             participants.id = participant_expenses.participant_id
             WHERE participant_expenses.expense_id = ?`, [this.id]
         )
-
         this.paidForParticipants = payForWho
     }
 

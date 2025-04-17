@@ -15,38 +15,45 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { ActivityContext } from "@/context/ActivityContext";
 import ParticipantList from "@/components/activities/participants/ParticipantList";
 import ExpenseList from "@/components/activities/expenses/ExpenseList";
+import { Activity } from "@/model/Activity";
+import Colors from "@/constant/Color";
 
 const screenWidth = Dimensions.get("window").width;
 
-const Colors = {
-  Primary: "#4A90E2",
-  Secondary: "#9B6ADE",
-  Background: "#FFFFFF",
-  Card: "#E9ECEF",
-  Main: "#2D3436",
-  SubText: "#6C757D",
-  Danger: "#FF3B30",
-  Dark: "#000000",
-};
-
 const ActivityDetail = () => {
   const { id } = useLocalSearchParams();
-  const { get } = useContext(ActivityContext);
+  const { get, detail } = useContext(ActivityContext);
 
-  const activity = get(id as string);
+  const activity: Activity = get(id as string);
 
   const navigation = useNavigation();
   useEffect(() => {
     navigation.setOptions({
       title: activity.title,
     });
+    detail(activity, ["expense", "participant"]);
   }, []);
+
   const [chartType, setChartType] = useState<"spending" | "distribution">(
     "spending"
   );
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
+
+  function remainingBudgetHelper(activity: Activity): string {
+    if (!activity.budget) {
+      return "N/A";
+    }
+    return Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
+    }).format(activity.budget - activity.totalAmount);
+  }
+
+  const isOverBudget = activity.budget
+    ? activity.totalAmount > activity.budget
+    : false;
 
   const chartData = [
     {
@@ -73,93 +80,102 @@ const ActivityDetail = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Scrollable Content */}
-      <ScrollView style={styles.scrollContainer}>
-        {/* Summary Section */}
-        <View>
-          <View>
-            <Text>Total Expenses</Text>
-            <Text>{activity.totalAmountDisplay}</Text>
-          </View>
-          <View>
-            <Text>Remaining Budget</Text>
-            <Text>{activity.budgetAmountDisplay}</Text>
-          </View>
+    <ScrollView style={styles.container}>
+      {/* Summary Section */}
+      <View style={styles.summarySection}>
+        <View style={styles.summarySubSection}>
+          <Text style={[styles.textCenter, styles.summaryHeader]}>
+            Total Expenses
+          </Text>
+          <Text style={[styles.textCenter, styles.summaryInfo]}>
+            {activity.totalAmountDisplay}
+          </Text>
         </View>
-        {/* Chart Section */}
-        <View style={styles.card}>
-          <View style={styles.chartToggle}>
-            <TouchableOpacity
-              onPress={() => setChartType("spending")}
-              style={
-                chartType === "spending"
-                  ? styles.activeButton
-                  : styles.inactiveButton
-              }
-            >
-              <Text style={styles.buttonText}>Spending</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setChartType("distribution")}
-              style={
-                chartType === "distribution"
-                  ? styles.activeButton
-                  : styles.inactiveButton
-              }
-            >
-              <Text style={styles.buttonText}>Distribution</Text>
-            </TouchableOpacity>
-          </View>
-          <PieChart
-            data={chartData}
-            width={screenWidth - 40}
-            height={220}
-            chartConfig={{
-              backgroundColor: "#fff",
-              backgroundGradientFrom: "#fff",
-              backgroundGradientTo: "#fff",
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            }}
-            accessor={"population"}
-            backgroundColor={"transparent"}
-            paddingLeft={"15"}
-            absolute
-          />
+        <View style={styles.summarySubSection}>
+          <Text style={[styles.textCenter, styles.summaryHeader]}>
+            Remaining Budget
+          </Text>
+          <Text
+            style={[
+              styles.textCenter,
+              styles.summaryInfo,
+              { color: isOverBudget ? Colors.Danger : Colors.Success },
+            ]}
+          >
+            {remainingBudgetHelper(activity)}
+          </Text>
         </View>
-
-        {/* Toggle View */}
-        <View style={styles.viewToggle}>
+      </View>
+      {/* Chart Section */}
+      <View style={styles.card}>
+        <View style={styles.chartToggle}>
           <TouchableOpacity
-            onPress={() => setViewType("participants")}
+            onPress={() => setChartType("spending")}
             style={
-              viewType === "participants"
-                ? styles.activeView
-                : styles.inactiveView
+              chartType === "spending"
+                ? styles.activeButton
+                : styles.inactiveButton
             }
           >
-            <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
+            <Text style={styles.buttonText}>Spending</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setViewType("expenses")}
+            onPress={() => setChartType("distribution")}
             style={
-              viewType === "expenses" ? styles.activeView : styles.inactiveView
+              chartType === "distribution"
+                ? styles.activeButton
+                : styles.inactiveButton
             }
           >
-            <Text style={styles.buttonText}>EXPENSES</Text>
+            <Text style={styles.buttonText}>Distribution</Text>
           </TouchableOpacity>
         </View>
+        <PieChart
+          data={chartData}
+          width={screenWidth - 40}
+          height={220}
+          chartConfig={{
+            backgroundColor: "#fff",
+            backgroundGradientFrom: "#fff",
+            backgroundGradientTo: "#fff",
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          }}
+          accessor={"population"}
+          backgroundColor={"transparent"}
+          paddingLeft={"15"}
+          absolute
+        />
+      </View>
 
-        {/* Main Section */}
-        {viewType === "participants" ? (
-          <ParticipantList
-            participants={activity.participants}
-          ></ParticipantList>
-        ) : (
-          <ExpenseList activity={activity}></ExpenseList>
-        )}
-      </ScrollView>
-    </View>
+      {/* Toggle View */}
+      <View style={styles.viewToggle}>
+        <TouchableOpacity
+          onPress={() => setViewType("participants")}
+          style={
+            viewType === "participants"
+              ? styles.activeView
+              : styles.inactiveView
+          }
+        >
+          <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setViewType("expenses")}
+          style={
+            viewType === "expenses" ? styles.activeView : styles.inactiveView
+          }
+        >
+          <Text style={styles.buttonText}>EXPENSES</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Section */}
+      {viewType === "participants" ? (
+        <ParticipantList participants={activity.participants}></ParticipantList>
+      ) : (
+        <ExpenseList expenses={activity.expenses}></ExpenseList>
+      )}
+    </ScrollView>
   );
 };
 
@@ -169,10 +185,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.Background,
-  },
-  scrollContainer: {
     padding: 10,
   },
+  summarySection: {
+    flexDirection: "row",
+    padding: 10,
+    justifyContent: "space-around",
+    backgroundColor: Colors.Background,
+    shadowColor: Colors.Main,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    borderRadius: 8,
+    paddingVertical: 20,
+  },
+  summaryHeader: {
+    fontSize: 16,
+    fontWeight: 500,
+    paddingBottom: 6,
+  },
+  summaryInfo: {
+    fontSize: 22,
+    fontWeight: 600,
+  },
+  summarySubSection: {},
   header: {
     backgroundColor: Colors.Primary,
     padding: 15,
@@ -238,5 +277,8 @@ const styles = StyleSheet.create({
   money: {
     fontWeight: "bold",
     color: Colors.Dark,
+  },
+  textCenter: {
+    textAlign: "center",
   },
 });

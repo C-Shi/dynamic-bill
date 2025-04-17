@@ -3,29 +3,51 @@ import { Model } from './Core';
 import { DB } from '@/utils/db';
 
 export class Participant extends Model {
-    expenses: Expense[] = [];
-
     constructor(participant: { [key: string]: any }) {
         super(participant)
         this.name = participant.name;
         this.activityId = participant.activityId;
+        this.totalOwed = participant.totalOwed;
+        this.totalPaid = participant.totalPaid
     }
 
     name: string;
     activityId: string;
+    totalOwed: number = 0;
+    totalPaid: number = 0;
 
-    addExpense(expense: Expense) {
-        this.expenses.push(expense)
-    }
+    paidForExpenses: Expense[] = []
+    paidByExpenses: Expense[] = []
 
     public toEntity(): { [key: string]: any } {
         return {
             id: this.id,
             name: this.name,
             activity_id: this.activityId,
+            total_owed: this.totalOwed,
+            total_paid: this.totalPaid,
             created_at: this.createdAt.toISOString()
         }
 
+    }
+
+    public async detail(paidForExpenses?: Expense[], paidByExpenses?: Expense[]) {
+        /** Add expenses if array is there */
+        if (paidForExpenses) {
+            this.paidForExpenses = paidForExpenses
+        } else {
+            const paidForExpenses = await DB.query(`SELECT * FROM expenses WHERE paid_by = ?`, [this.id]) as Expense[]
+            this.paidForExpenses = paidForExpenses
+        }
+
+        if (paidByExpenses) {
+            this.paidByExpenses = paidByExpenses
+        } else {
+            const paidByExpenses = await DB.query(
+                `SELECT expenses.* FROM expenses JOIN participant_expenses ON expenses.id = participant_expenses.expense_id 
+                WHERE participant_expenses.participant_id = ?`, [this.id]) as Expense[]
+            this.paidByExpenses = paidByExpenses
+        }
     }
 
     public async save() {
@@ -54,7 +76,7 @@ export class Participant extends Model {
         }
         const participants = await DB.query(query, params);
         return participants.map((p: any) => {
-            return new this({ ...p, createdAt: p.created_at, activityId: p.activity_id })
+            return new this({ ...p, createdAt: p.created_at, activityId: p.activity_id, totalOwed: p.total_owed, totalPaid: p.total_paid })
         })
     }
 }
