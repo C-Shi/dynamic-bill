@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { DB } from "@/utils/db";
 import Colors from "@/constant/Color";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -32,6 +33,17 @@ export default function RootLayout() {
         <Stack.Screen
           name="(tabs)"
           options={{ headerShown: false }}
+        ></Stack.Screen>
+        <Stack.Screen
+          name="activities/[id]"
+          options={{
+            headerStyle: {
+              backgroundColor: Colors.Primary,
+            },
+            headerTintColor: Colors.Background,
+            headerBackButtonDisplayMode: "minimal",
+            headerBackTitle: "Activities",
+          }}
         ></Stack.Screen>
         <Stack.Screen
           name="activities/new"

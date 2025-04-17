@@ -5,6 +5,7 @@ interface IDatabaseAdapter {
     init(): Promise<void>;
     seed(): Promise<void>;
     query(query: string, params: any[]): Promise<void>;
+    first(query: string, params: any[]): Promise<void>;
 }
 
 class SQLiteAdapter {
@@ -201,7 +202,11 @@ class SQLiteAdapter {
     public static async query(query: string, params: any[]): Promise<any> {
         const db = await SQLiteAdapter.db()
         return db.getAllAsync(query, params)
+    }
 
+    public static async first(query: string, params: any[]): Promise<any> {
+        const db = await SQLiteAdapter.db()
+        return db.getFirstAsync(query, params)
     }
 }
 
@@ -221,6 +226,12 @@ export class DB {
     }
 
     static async query(query: string, params?: any): Promise<any> {
+        console.debug(`Query: ${query} with Params ${params} - DB.query`)
         return DB.adapter.query(query, params)
+    }
+
+    static async first(query: string, params?: any): Promise<any> {
+        console.debug(`Query: ${query} with Params ${params} - DB.first`)
+        return DB.adapter.first(query, params)
     }
 }

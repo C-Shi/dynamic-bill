@@ -13,15 +13,26 @@ export class Expense extends Model {
         this.date = expense.date;
     }
 
-    participants: Participant[] = []
     activityId: string;
     paidBy: string;
     amount: number;
     description: string;
     date: Date;
 
-    addParticipant(participant: Participant) {
-        this.participants.push(participant);
+    paidForParticipants?: Participant[]
+    paidByParticipant?: Participant
+
+    public async detail() {
+        const whoPay = await DB.first(`SELECT * FROM participants WHERE id = ?`, [this.paidBy])
+        this.paidByParticipant = whoPay;
+
+        const payForWho = await DB.query(
+            `SELECT * FROM participants JOIN participant_expenses ON
+            participants.id = participant_expenses.participant_id
+            WHERE participant_expenses.expense_id = ?`, [this.id]
+        )
+
+        this.paidForParticipants = payForWho
     }
 
     toEntity(): { [key: string]: any } {

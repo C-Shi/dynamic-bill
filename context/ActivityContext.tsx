@@ -8,6 +8,8 @@ type ActivityContextType = {
   activities: Activity[];
   add: (activity: Activity) => Promise<any>;
   remove: (activity: Activity) => Promise<any>;
+  get: (id: string) => Activity;
+  detail: (activity: Activity, type: "expense" | "participant") => Promise<any>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -27,6 +29,13 @@ function reducer(
       return state.filter(
         (activity: Activity) => activity.id !== (action.payload as Activity).id
       );
+    case "FETCH_DETAIL":
+      return state.map((activity: Activity) => {
+        if (activity.id === (action.payload as Activity).id) {
+          return action.payload;
+        }
+        return activity;
+      });
     default:
       return state;
   }
@@ -36,10 +45,10 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const [activities, dispatch] = useReducer(reducer, []);
 
   useEffect(() => {
-    getActivities();
+    fetchActivitiesDB();
   }, []);
 
-  const getActivities = async () => {
+  const fetchActivitiesDB = async () => {
     const activitiesList = await Activity.all();
     await Promise.all(
       activitiesList.map(async (activity) => {
@@ -50,6 +59,7 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
 
         activity.participants = participants;
         activity.expenses = expenses;
+
         return activity;
       })
     );
@@ -82,10 +92,30 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const get = (id: string): Activity => {
+    return activities.find((a: Activity) => a.id === id);
+  };
+
+  const detail = async (
+    activity: Activity,
+    relation: "expense" | "participant"
+  ): Promise<any> => {
+    /** Update inplace */
+    if (relation === "expense") {
+      await Promise.allSettled(
+        await activity.expenses.map(async (e) => await e.detail())
+      );
+    }
+    /** Trigger state update */
+    dispatch({ type: "FETCH_DETAIL", payload: activity });
+  };
+
   const value = {
     activities,
     add,
     remove,
+    get,
+    detail,
   };
 
   return (

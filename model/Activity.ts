@@ -79,6 +79,12 @@ export class Activity extends Model {
         }
     }
 
+    public async details() {
+        `SELECT * FROM participants WHERE activity_id = ?`
+        /** Check if participants */
+        /** Check if expenses */
+    }
+
     get totalAmount() {
         return this.expenses.reduce((prev, curr) => {
             return prev + curr.amount
@@ -92,13 +98,25 @@ export class Activity extends Model {
         }).format(this.totalAmount)
     }
 
-    get budgetAmountDisplay(): string | void {
+    get budgetAmountDisplay(): string {
         if (this.budget) {
             return Intl.NumberFormat("en-CA", {
                 style: "currency",
                 currency: "CAD"
             }).format(this.budget)
         }
+        return 'N/A'
+    }
+
+    get remainingBudgetDisplay(): string {
+        if (!this.budget) {
+            return 'N/A'
+        }
+        const remain = this.budget - this.totalAmount
+        return Intl.NumberFormat("en-CA", {
+            style: "currency",
+            currency: "CAD"
+        }).format(remain)
     }
 
     get totalParticipant() {
@@ -107,7 +125,6 @@ export class Activity extends Model {
 
     public static async all(): Promise<Activity[]> {
         const activities = await DB.query('SELECT * FROM activities ORDER BY created_at DESC')
-        console.log(activities)
         return activities.map((d: any) => {
             return new this({ ...d, createdAt: d.created_at })
         })
