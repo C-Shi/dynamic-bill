@@ -2,6 +2,7 @@ import { Participant } from "./Participant";
 import { Model } from './Core'
 import { DB } from "@/utils/db";
 import { Expense } from "./Expense";
+import { ParticipantExpense } from "./ParticipantExpense";
 
 export class Activity extends Model {
     protected static _table: string = 'activities';
@@ -39,22 +40,6 @@ export class Activity extends Model {
         }
     }
 
-    public addParticipant(participant: Participant) {
-        this.participants.push(participant)
-    }
-
-    public addParticipants(participants: Participant[]) {
-        participants.forEach(this.addParticipant)
-    }
-
-    public addExpense(expense: Expense) {
-        this.expenses.push(expense)
-    }
-
-    public addExpenses(expenses: Expense[]) {
-        expenses.forEach(this.addExpense)
-    }
-
     public async save() {
         const data = this.toEntity()
         const columns = Object.keys(data)
@@ -77,6 +62,17 @@ export class Activity extends Model {
         } catch {
             console.error('[DELETE FAIL] - activities')
         }
+    }
+
+    public async addExpense(expense: Expense, expenseFor: string[]) {
+        /** Add Expense to DB */
+        console.log('add expense')
+        await expense.save()
+        /** Add Expense For Run Participant Sync */
+        await Promise.allSettled(expenseFor.map(async pid => {
+            const pe = new ParticipantExpense({ participantId: pid, expenseId: expense.id })
+            await pe.save()
+        }))
     }
 
     get totalAmount() {

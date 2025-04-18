@@ -173,7 +173,10 @@ const ActivityDetail = () => {
       {viewType === "participants" ? (
         <ParticipantList participants={activity.participants}></ParticipantList>
       ) : (
-        <ExpenseList expenses={activity.expenses}></ExpenseList>
+        <ExpenseList
+          expenses={activity.expenses}
+          activityId={activity.id}
+        ></ExpenseList>
       )}
     </ScrollView>
   );

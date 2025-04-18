@@ -1,40 +1,64 @@
 import { Participant } from './Participant';
 import { Expense } from './Expense';
 import { Model } from './Core';
-
-export class ParticipantExpenseEntity extends BaseEntity {
-    constructor(participantExpense: {
-        id?: string;
-        participantId: string;
-        expenseId: string;
-        createdAt?: Date;
-    }) {
-        super({ id: participantExpense.id, createdAt: participantExpense.createdAt })
-        this.participantId = participantExpense.participantId;
-        this.expenseId = participantExpense.expenseId;
+import { DB } from '@/utils/db';
+export class ParticipantExpense extends Model {
+    constructor(pe: { [key: string]: any }) {
+        super(pe);
+        this.participantId = pe.participantId;
+        this.expenseId = pe.expenseId;
     }
 
     participantId: string;
     expenseId: string;
-}
 
-export class ParticipantExpense extends ParticipantExpenseEntity implements BaseModel<ParticipantExpenseEntity> {
-    // These are populated through the relationship
-    participant: Participant;
-    expense: Expense;
-
-    constructor(participantExpense: ParticipantExpenseEntity, participant: Participant, expense: Expense) {
-        super(participantExpense);
-        this.participant = participant;
-        this.expense = expense;
+    toEntity(): { [key: string]: any } {
+        return {
+            id: this.id,
+            participant_id: this.participantId,
+            expense_id: this.expenseId,
+            created_at: this.createdAt.toISOString()
+        }
     }
 
-    toEntity(): ParticipantExpenseEntity {
-        return new ParticipantExpenseEntity({
-            id: this.id,
-            participantId: this.participantId,
-            expenseId: this.expenseId,
-            createdAt: this.createdAt
-        })
+    async save() {
+        const data = this.toEntity()
+        const columns = Object.keys(data)
+        const values = Object.values(data)
+        const query = `INSERT INTO participant_expenses ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
+
+        try {
+            await DB.query(query, values)
+            console.log('insert expenses')
+            await DB.query(`
+                UPDATE participants
+                SET 
+                total_paid = (
+                    SELECT COALESCE(SUM(e.amount), 0)
+                    FROM expenses e
+                    WHERE e.paid_by = participants.id
+                ),
+                total_owed = (
+                    SELECT COALESCE(SUM(
+                    e.amount / (
+                        SELECT COUNT(*) 
+                        FROM participant_expenses pe2 
+                        WHERE pe2.expense_id = e.id
+                    )
+                    ), 0)
+                    FROM expenses e
+                    JOIN participant_expenses pe ON pe.expense_id = e.id
+                    WHERE pe.participant_id = participants.id
+                )
+                WHERE id = ?;
+
+            `, [data.participant_id])
+            console.log('update participants')
+        } catch (e) {
+            if (__DEV__) {
+                console.log(e)
+            }
+            console.error('[INSERT FAIL] - participant_expenses')
+        }
     }
 }

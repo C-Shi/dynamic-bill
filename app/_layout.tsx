@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DB } from "@/utils/db";
 import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
+import NewExpense from "./(modals)/activities/[id]/expenses/new";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -24,6 +25,8 @@ export default function RootLayout() {
     }
   };
 
+  const modalHeaderStyle = {};
+
   if (!ready) {
     return <Text>Loading...</Text>;
   }
@@ -35,7 +38,7 @@ export default function RootLayout() {
           options={{ headerShown: false }}
         ></Stack.Screen>
         <Stack.Screen
-          name="activities/[id]"
+          name="activities/[id]/index"
           options={{
             headerStyle: {
               backgroundColor: Colors.Primary,
@@ -46,7 +49,7 @@ export default function RootLayout() {
           }}
         ></Stack.Screen>
         <Stack.Screen
-          name="activities/new"
+          name="(modals)/activities/new"
           options={{
             presentation: "modal",
             title: "Add Activity",
@@ -74,6 +77,20 @@ export default function RootLayout() {
             ),
           }}
         />
+        <Stack.Screen
+          name="(modals)/activities/[id]/expenses/new"
+          options={{
+            presentation: "modal",
+            title: "Add Expense",
+            headerTintColor: Colors.Card,
+            headerStyle: {
+              backgroundColor: Colors.Primary,
+            },
+            contentStyle: {
+              backgroundColor: Colors.Background,
+            },
+          }}
+        ></Stack.Screen>
       </Stack>
     </ActivityContextProvider>
   );

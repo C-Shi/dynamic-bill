@@ -1,9 +1,17 @@
 import { Expense } from "@/model/Expense";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import { View, Button, Text, StyleSheet } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
-export default function ExpenseList({ expenses }: { expenses: Expense[] }) {
+export default function ExpenseList({
+  expenses,
+  activityId,
+}: {
+  expenses: Expense[];
+  activityId: string;
+}) {
+  const router = useRouter();
   return (
     <View style={styles.card}>
       <Text style={styles.tableHeader}>Expenses</Text>
@@ -14,7 +22,13 @@ export default function ExpenseList({ expenses }: { expenses: Expense[] }) {
           <Text>Paid by: {e.paidByParticipant?.name}</Text>
         </View>
       ))}
-      <Button title="Add Expense" onPress={() => {}} color={Colors.Primary} />
+      <Button
+        title="Add Expense"
+        onPress={() => {
+          router.push(`/activities/${activityId}/expenses/new`);
+        }}
+        color={Colors.Primary}
+      />
     </View>
   );
 }

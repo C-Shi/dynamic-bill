@@ -21,7 +21,9 @@ export default function Layout() {
         },
         headerTitleAlign: "left",
         headerRight: () => (
-          <Pressable onPress={() => router.navigate("/activities/new")}>
+          <Pressable
+            onPress={() => router.navigate("/(modals)/activities/new")}
+          >
             <Ionicons
               name="add-circle-outline"
               size={28}

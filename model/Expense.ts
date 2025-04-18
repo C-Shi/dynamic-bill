@@ -37,12 +37,29 @@ export class Expense extends Model {
     toEntity(): { [key: string]: any } {
         return {
             id: this.id,
-            createdAt: this.createdAt,
-            activityId: this.activityId,
+            created_at: this.createdAt.toISOString(),
+            activity_id: this.activityId,
             description: this.description,
-            paidBy: this.paidBy,
+            paid_by: this.paidBy,
             amount: this.amount,
-            date: this.date
+            date: this.date.toISOString()
+        }
+    }
+
+    public async save() {
+        console.log(this.date instanceof Date)
+        const data = this.toEntity()
+        const columns = Object.keys(data)
+        const values = Object.values(data)
+        const query = `INSERT INTO expenses ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
+
+        try {
+            return await DB.query(query, values)
+        } catch (e) {
+            if (__DEV__) {
+                console.log(e)
+            }
+            console.error('[INSERT FAIL] - expenses')
         }
     }
 
