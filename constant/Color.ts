@@ -16,7 +16,7 @@ class ColorSet {
         return `#${hex}`
     }
     public static newSet(count: number) {
-        const colorSet = [Colors.Primary, Colors.Secondary, '#FFD9A0', '#D6C1FF']
+        const colorSet = [Colors.Primary, '#ED6665', '#FFD9A0', '#D6C1FF']
         for (let i = 0; i < count - colorSet.length; i++) {
             colorSet.push(this.generateRandomColor())
         }

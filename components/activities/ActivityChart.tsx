@@ -2,6 +2,7 @@ import { Activity } from "@/model/Activity";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
 import ActivityPieChart from "./ActivityPieChart";
+import ActivityBarChart from "./ActivityBarChart";
 
 import React, { useState } from "react";
 
@@ -19,7 +20,10 @@ export default function ActivityChart({ activity }: { activity: Activity }) {
         chartColorSet={chartColorSet}
       ></ActivityPieChart>
     ) : (
-      <Text>Settlement</Text>
+      <ActivityBarChart
+        activity={activity}
+        chartColorSet={chartColorSet}
+      ></ActivityBarChart>
     );
 
   return (
