@@ -1,40 +1,27 @@
 import { Activity } from "@/model/Activity";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Colors from "@/constant/Color";
-import { PieChart } from "react-native-chart-kit";
-import { Dimensions } from "react-native";
-import { useState } from "react";
+import Colors, { ColorSet } from "@/constant/Color";
+import ActivityPieChart from "./ActivityPieChart";
 
-const screenWidth = Dimensions.get("window").width;
+import React, { useState } from "react";
 
 export default function ActivityChart({ activity }: { activity: Activity }) {
   const [chartType, setChartType] = useState<"contribution" | "settlement">(
     "contribution"
   );
 
-  const chartData = [
-    {
-      name: "Food",
-      population: 150,
-      color: Colors.Primary,
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 12,
-    },
-    {
-      name: "Transport",
-      population: 90,
-      color: Colors.Secondary,
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 12,
-    },
-    {
-      name: "Misc",
-      population: 80,
-      color: Colors.Danger,
-      legendFontColor: "#7F7F7F",
-      legendFontSize: 12,
-    },
-  ];
+  const chartColorSet = ColorSet.newSet(activity.participants.length);
+
+  const chartToDisplay =
+    chartType === "contribution" ? (
+      <ActivityPieChart
+        activity={activity}
+        chartColorSet={chartColorSet}
+      ></ActivityPieChart>
+    ) : (
+      <Text>Settlement</Text>
+    );
+
   return (
     <View style={styles.container}>
       <View style={styles.chartButtonGroup}>
@@ -83,21 +70,7 @@ export default function ActivityChart({ activity }: { activity: Activity }) {
           </Text>
         </TouchableOpacity>
       </View>
-      <PieChart
-        data={chartData}
-        width={screenWidth - 40}
-        height={220}
-        chartConfig={{
-          backgroundColor: "#fff",
-          backgroundGradientFrom: "#fff",
-          backgroundGradientTo: "#fff",
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        }}
-        accessor={"population"}
-        backgroundColor={"transparent"}
-        paddingLeft={"15"}
-        absolute
-      />
+      {chartToDisplay}
     </View>
   );
 }

@@ -10,4 +10,21 @@ const Colors = {
     Dark: "#000000",
 }
 
+class ColorSet {
+    public static generateRandomColor() {
+        const hex = Math.random().toString(16).slice(2, 8).padEnd(6, '0')
+        return `#${hex}`
+    }
+    public static newSet(count: number) {
+        const colorSet = [Colors.Primary, Colors.Secondary, '#FFD9A0', '#D6C1FF']
+        for (let i = 0; i < count - colorSet.length; i++) {
+            colorSet.push(this.generateRandomColor())
+        }
+
+        return colorSet;
+    }
+}
+
+export { ColorSet };
+
 export default Colors;
