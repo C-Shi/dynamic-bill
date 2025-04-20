@@ -5,18 +5,16 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Button,
   TouchableOpacity,
-  FlatList,
+  AccessibilityInfo,
 } from "react-native";
 
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { ActivityContext } from "@/context/ActivityContext";
-import ParticipantList from "@/components/activities/participants/ParticipantList";
-import ExpenseList from "@/components/activities/expenses/ExpenseList";
 import { Activity } from "@/model/Activity";
 import Colors from "@/constant/Color";
 import ActivityChart from "@/components/activities/ActivityChart";
+import DataTable from "@/components/shared/DataTable";
 
 const ActivityDetail = () => {
   const { id } = useLocalSearchParams();
@@ -36,15 +34,38 @@ const ActivityDetail = () => {
     "participants"
   );
 
-  function remainingBudgetHelper(activity: Activity): string {
-    if (!activity.budget) {
-      return "N/A";
-    }
+  const currencyHelper = (val: number) => {
     return Intl.NumberFormat("en-CA", {
       style: "currency",
       currency: "CAD",
-    }).format(activity.budget - activity.totalAmount);
-  }
+    }).format(val);
+  };
+
+  const participantData = {
+    columns: ["Name", "Paid", "Owed", "Net"],
+    values: activity.participants.map((p) => {
+      const paid = p.totalPaid;
+      const due = p.totalOwed;
+      const net = paid - due;
+      return [
+        p.name,
+        currencyHelper(paid),
+        currencyHelper(due),
+        currencyHelper(net),
+      ];
+    }),
+  };
+
+  const expenseData = {
+    columns: ["Description", "Amount", "Paid By"],
+    values: activity.expenses.map((e) => {
+      return [
+        e.description,
+        currencyHelper(e.amount),
+        e.paidByParticipant?.name || "Unknown",
+      ];
+    }),
+  };
 
   const isOverBudget = activity.budget
     ? activity.totalAmount > activity.budget
@@ -73,7 +94,9 @@ const ActivityDetail = () => {
               { color: isOverBudget ? Colors.Danger : Colors.Success },
             ]}
           >
-            {remainingBudgetHelper(activity)}
+            {activity.budget
+              ? currencyHelper(activity.budget - activity.totalAmount)
+              : "N/A"}
           </Text>
         </View>
       </View>
@@ -104,12 +127,9 @@ const ActivityDetail = () => {
 
       {/* Main Section */}
       {viewType === "participants" ? (
-        <ParticipantList participants={activity.participants}></ParticipantList>
+        <DataTable data={participantData}></DataTable>
       ) : (
-        <ExpenseList
-          expenses={activity.expenses}
-          activityId={activity.id}
-        ></ExpenseList>
+        <DataTable data={expenseData}></DataTable>
       )}
     </ScrollView>
   );
