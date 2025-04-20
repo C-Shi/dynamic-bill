@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  AccessibilityInfo,
 } from "react-native";
 
 import { useLocalSearchParams, useNavigation } from "expo-router";
@@ -15,6 +14,7 @@ import { Activity } from "@/model/Activity";
 import Colors from "@/constant/Color";
 import ActivityChart from "@/components/activities/ActivityChart";
 import DataTable from "@/components/shared/DataTable";
+import FloatingButtonGroup from "@/components/shared/FloatingButtonGroup";
 
 const ActivityDetail = () => {
   const { id } = useLocalSearchParams();
@@ -43,27 +43,39 @@ const ActivityDetail = () => {
 
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],
-    values: activity.participants.map((p) => {
+    cells: activity.participants.map((p) => {
       const paid = p.totalPaid;
       const due = p.totalOwed;
       const net = paid - due;
-      return [
-        p.name,
-        currencyHelper(paid),
-        currencyHelper(due),
-        currencyHelper(net),
-      ];
+      return {
+        values: [
+          p.name,
+          currencyHelper(paid),
+          currencyHelper(due),
+          currencyHelper(net),
+        ],
+        styles: [
+          null,
+          null,
+          null,
+          {
+            color: net > 0 ? Colors.Success : Colors.Danger,
+          },
+        ],
+      };
     }),
   };
 
   const expenseData = {
     columns: ["Description", "Amount", "Paid By"],
-    values: activity.expenses.map((e) => {
-      return [
-        e.description,
-        currencyHelper(e.amount),
-        e.paidByParticipant?.name || "Unknown",
-      ];
+    cells: activity.expenses.map((e) => {
+      return {
+        values: [
+          e.description,
+          currencyHelper(e.amount),
+          e.paidByParticipant?.name || "Unknown",
+        ],
+      };
     }),
   };
 
@@ -131,6 +143,8 @@ const ActivityDetail = () => {
       ) : (
         <DataTable data={expenseData}></DataTable>
       )}
+
+      {/* <FloatingButtonGroup></FloatingButtonGroup> */}
     </ScrollView>
   );
 };

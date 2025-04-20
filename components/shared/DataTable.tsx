@@ -1,15 +1,23 @@
 import { View, Text, StyleSheet } from "react-native";
 import Colors from "@/constant/Color";
 
+type obj = { [key: string]: any };
+type tableData = {
+  columns: string[];
+  cells: { values: string[]; styles?: obj }[];
+};
+
 export default function DataTable({
   data,
+  headerStyle,
 }: {
-  data: { columns: string[]; values: { [key: string]: any } };
+  data: tableData;
+  headerStyle?: obj;
 }) {
   return (
     <View style={styles.container}>
       {/* Header Row */}
-      <View style={[styles.row, styles.header]}>
+      <View style={[styles.row, styles.header, headerStyle]}>
         {data.columns.map((column: string, i: number) => (
           <Text key={i} style={styles.headerText}>
             {column}
@@ -18,11 +26,13 @@ export default function DataTable({
       </View>
 
       {/* Data Rows */}
-      {data.values.map((value: any, i: number) => {
+      {data.cells.map((cell: any, i: number) => {
         return (
           <View key={i} style={styles.row}>
-            {value.map((v: string) => (
-              <Text style={styles.cell}>{v}</Text>
+            {cell.values.map((v: string, i: number) => (
+              <Text key={i} style={[styles.cell, cell.styles?.[i]]}>
+                {v}
+              </Text>
             ))}
           </View>
         );
