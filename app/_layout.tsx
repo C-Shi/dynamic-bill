@@ -4,8 +4,6 @@ import { Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { DB } from "@/utils/db";
 import Colors from "@/constant/Color";
-import { Ionicons } from "@expo/vector-icons";
-import NewExpense from "./(modals)/activities/[id]/expenses/new";
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);

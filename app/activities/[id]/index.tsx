@@ -14,7 +14,8 @@ import { Activity } from "@/model/Activity";
 import Colors from "@/constant/Color";
 import ActivityChart from "@/components/activities/ActivityChart";
 import DataTable from "@/components/shared/DataTable";
-import FloatingButtonGroup from "@/components/shared/FloatingButtonGroup";
+import FloatingButtonGroup from "@/components/shared/ButtonGroup";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 
 const ActivityDetail = () => {
   const { id } = useLocalSearchParams();
@@ -83,69 +84,103 @@ const ActivityDetail = () => {
     ? activity.totalAmount > activity.budget
     : false;
 
+  const buttonGroup = [
+    {
+      icon: <FontAwesome name="edit" size={24} color={Colors.Background} />,
+      onPress: () => console.log("Edit Activity"),
+    },
+    {
+      icon: (
+        <Ionicons
+          name="person-add-outline"
+          size={24}
+          color={Colors.Background}
+        />
+      ),
+      onPress: () => console.log("Add Participant"),
+    },
+    {
+      icon: <FontAwesome name="dollar" size={24} color={Colors.Background} />,
+      onPress: () => console.log("Add Expense"),
+    },
+  ];
+
   return (
-    <ScrollView style={styles.container}>
-      {/* Summary Section */}
-      <View style={styles.summarySection}>
-        <View style={styles.summarySubSection}>
-          <Text style={[styles.textCenter, styles.summaryHeader]}>
-            Total Expenses
-          </Text>
-          <Text style={[styles.textCenter, styles.summaryInfo]}>
-            {activity.totalAmountDisplay}
-          </Text>
-        </View>
-        <View style={styles.summarySubSection}>
-          <Text style={[styles.textCenter, styles.summaryHeader]}>
-            Remaining Budget
-          </Text>
-          <Text
-            style={[
-              styles.textCenter,
-              styles.summaryInfo,
-              { color: isOverBudget ? Colors.Danger : Colors.Success },
-            ]}
-          >
-            {activity.budget
-              ? currencyHelper(activity.budget - activity.totalAmount)
-              : "N/A"}
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.contentContainer}>
+        <ScrollView style={styles.scrollViewContainer}>
+          {/* Summary Section */}
+          <View style={styles.summarySection}>
+            <View style={styles.summarySubSection}>
+              <Text style={[styles.textCenter, styles.summaryHeader]}>
+                Total Expenses
+              </Text>
+              <Text style={[styles.textCenter, styles.summaryInfo]}>
+                {activity.totalAmountDisplay}
+              </Text>
+            </View>
+            <View style={styles.summarySubSection}>
+              <Text style={[styles.textCenter, styles.summaryHeader]}>
+                Remaining Budget
+              </Text>
+              <Text
+                style={[
+                  styles.textCenter,
+                  styles.summaryInfo,
+                  { color: isOverBudget ? Colors.Danger : Colors.Success },
+                ]}
+              >
+                {activity.budget
+                  ? currencyHelper(activity.budget - activity.totalAmount)
+                  : "N/A"}
+              </Text>
+            </View>
+          </View>
+          {/* Chart Section */}
+          <ActivityChart activity={activity}></ActivityChart>
+
+          {/* Toggle View */}
+          <View style={styles.viewToggle}>
+            <TouchableOpacity
+              onPress={() => setViewType("participants")}
+              style={
+                viewType === "participants"
+                  ? styles.activeView
+                  : styles.inactiveView
+              }
+            >
+              <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setViewType("expenses")}
+              style={
+                viewType === "expenses"
+                  ? styles.activeView
+                  : styles.inactiveView
+              }
+            >
+              <Text style={styles.buttonText}>EXPENSES</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Section */}
+          {viewType === "participants" ? (
+            <DataTable data={participantData}></DataTable>
+          ) : (
+            <DataTable data={expenseData}></DataTable>
+          )}
+        </ScrollView>
       </View>
-      {/* Chart Section */}
-      <ActivityChart activity={activity}></ActivityChart>
-
-      {/* Toggle View */}
-      <View style={styles.viewToggle}>
-        <TouchableOpacity
-          onPress={() => setViewType("participants")}
-          style={
-            viewType === "participants"
-              ? styles.activeView
-              : styles.inactiveView
-          }
-        >
-          <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setViewType("expenses")}
-          style={
-            viewType === "expenses" ? styles.activeView : styles.inactiveView
-          }
-        >
-          <Text style={styles.buttonText}>EXPENSES</Text>
-        </TouchableOpacity>
+      <View style={styles.fabContainer}>
+        <FloatingButtonGroup
+          buttons={buttonGroup}
+          backgroundColor={Colors.Primary}
+          color={Colors.Background}
+          shadow
+          direction="left"
+        ></FloatingButtonGroup>
       </View>
-
-      {/* Main Section */}
-      {viewType === "participants" ? (
-        <DataTable data={participantData}></DataTable>
-      ) : (
-        <DataTable data={expenseData}></DataTable>
-      )}
-
-      {/* <FloatingButtonGroup></FloatingButtonGroup> */}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -156,6 +191,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.Background,
     padding: 10,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingBottom: 100, // enough space for FAB group
+  },
+  scrollViewContainer: {
+    paddingBottom: 40,
   },
   summarySection: {
     flexDirection: "row",
@@ -232,5 +274,12 @@ const styles = StyleSheet.create({
     color: Colors.Main,
     fontWeight: "600",
     textAlign: "center",
+  },
+  fabContainer: {
+    position: "absolute",
+    bottom: 40,
+    right: 30,
+    left: 0,
+    alignItems: "flex-end",
   },
 });
