@@ -1,0 +1,111 @@
+import { Activity } from "@/model/Activity";
+import { Participant } from "@/model/Participant";
+import { useState } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Pressable,
+} from "react-native";
+import Colors from "@/constant/Color";
+
+export default function AddParticipant({
+  activity,
+  open,
+  close,
+}: {
+  activity: Activity;
+  open: boolean;
+  close: (val: boolean) => void;
+}) {
+  const [participantName, setParticipantName] = useState("");
+
+  async function onAddParticipant() {
+    if (!participantName) {
+      alert("Please add a name");
+      return;
+    }
+    const data = new Participant({
+      name: participantName.trim(),
+      activityId: activity.id,
+    });
+
+    try {
+      await data.save();
+    } catch (e) {
+      alert("Unable to save participant");
+    } finally {
+      close(false);
+    }
+  }
+
+  return (
+    <Modal
+      visible={open}
+      transparent
+      animationType="fade"
+      onRequestClose={() => close(false)}
+    >
+      <Pressable style={styles.backdrop} onPress={() => close(false)}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Add Participant</Text>
+          <TextInput
+            value={participantName}
+            onChangeText={setParticipantName}
+            placeholder="Participant Name"
+            style={styles.input}
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity onPress={onAddParticipant} style={styles.button}>
+            <Text style={styles.buttonText}>Add Participant</Text>
+          </TouchableOpacity>
+        </View>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  container: {
+    width: "85%",
+    backgroundColor: Colors.Card,
+    padding: 24,
+    borderRadius: 16,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: Colors.Primary,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
