@@ -9,7 +9,7 @@ type ActivityContextType = {
   add: (activity: Activity) => Promise<any>;
   remove: (activity: Activity) => Promise<any>;
   get: (id: string) => Activity;
-  detail: (activity: Activity, type: Array<any>) => Promise<any>;
+  detail: (activity: Activity, type?: Array<any>) => Promise<any>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -98,9 +98,12 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
 
   const detail = async (
     activity: Activity,
-    relation: Array<any>
+    relation?: Array<any>
   ): Promise<any> => {
     /** Update inplace */
+    if (!relation) {
+      relation = ["expense", "participant"];
+    }
     try {
       if (relation.find((r) => r === "expense")) {
         await Promise.allSettled(

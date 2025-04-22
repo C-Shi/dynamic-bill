@@ -47,7 +47,6 @@ export class Expense extends Model {
     }
 
     public async save() {
-        console.log(this.date instanceof Date)
         const data = this.toEntity()
         const columns = Object.keys(data)
         const values = Object.values(data)
