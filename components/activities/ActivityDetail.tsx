@@ -13,8 +13,10 @@ import ActivityChart from "@/components/activities/ActivityChart";
 import DataTable from "@/components/shared/DataTable";
 import FloatingButtonGroup from "@/components/shared/ButtonGroup";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function ActivityDetail({ activity }: { activity: Activity }) {
+  const router = useRouter();
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
@@ -85,7 +87,8 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     },
     {
       icon: <FontAwesome name="dollar" size={24} color={Colors.Background} />,
-      onPress: () => console.log("Add Expense"),
+      onPress: () =>
+        router.push(`/(modals)/activities/${activity.id}/expenses/new`),
     },
   ];
 

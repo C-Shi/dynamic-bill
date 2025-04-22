@@ -2,7 +2,6 @@ import { ActivityContextProvider } from "@/context/ActivityContext";
 import { Stack } from "expo-router";
 import { Text, View } from "react-native";
 import { useEffect, useState } from "react";
-import { DB } from "@/utils/db";
 import Colors from "@/constant/Color";
 
 export default function RootLayout() {
@@ -22,8 +21,6 @@ export default function RootLayout() {
       console.log(err);
     }
   };
-
-  const modalHeaderStyle = {};
 
   if (!ready) {
     return <Text>Loading...</Text>;
