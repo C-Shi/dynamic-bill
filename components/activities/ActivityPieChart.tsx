@@ -4,10 +4,10 @@ import { PieChart } from "react-native-gifted-charts";
 import Colors from "@/constant/Color";
 
 export default function ActivityPieChart({
-  activity,
+  dataset,
   chartColorSet,
 }: {
-  activity: Activity;
+  dataset: any[];
   chartColorSet: string[];
 }) {
   const currencyHelper = (val: number) => {
@@ -16,7 +16,7 @@ export default function ActivityPieChart({
       currency: "CAD",
     }).format(val);
   };
-  const contributionData = activity.participants.map((p, i) => {
+  const contributionData = dataset.map((p, i) => {
     return {
       value: p.totalPaid,
       color: chartColorSet[i],

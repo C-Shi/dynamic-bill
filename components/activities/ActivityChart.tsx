@@ -1,27 +1,27 @@
-import { Activity } from "@/model/Activity";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
 import ActivityPieChart from "./ActivityPieChart";
 import ActivityBarChart from "./ActivityBarChart";
 
 import React, { useState } from "react";
+import { Participant } from "@/model/Participant";
 
-export default function ActivityChart({ activity }: { activity: Activity }) {
+export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
   const [chartType, setChartType] = useState<"contribution" | "settlement">(
     "contribution"
   );
 
-  const chartColorSet = ColorSet.newSet(activity.participants.length);
+  const chartColorSet = ColorSet.newSet(dataset.length);
 
   const chartToDisplay =
     chartType === "contribution" ? (
       <ActivityPieChart
-        activity={activity}
+        dataset={dataset}
         chartColorSet={chartColorSet}
       ></ActivityPieChart>
     ) : (
       <ActivityBarChart
-        activity={activity}
+        dataset={dataset}
         chartColorSet={chartColorSet}
       ></ActivityBarChart>
     );

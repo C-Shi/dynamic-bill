@@ -1,4 +1,4 @@
-import { Activity } from "@/model/Activity";
+import { Participant } from "@/model/Participant";
 import { View, Text, StyleSheet } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import Colors from "@/constant/Color";
@@ -10,13 +10,13 @@ const MAX_BAR_WIDTH = 60;
 const BAR_GAP = 40;
 
 export default function ActivityBarChart({
-  activity,
+  dataset,
   chartColorSet,
 }: {
-  activity: Activity;
+  dataset: Participant[];
   chartColorSet: string[];
 }) {
-  const barData = activity.participants.flatMap((p) => {
+  const barData = dataset.flatMap((p) => {
     return [
       {
         value: p.totalPaid,
@@ -31,7 +31,7 @@ export default function ActivityBarChart({
   });
 
   const barMaxValue = (function () {
-    const max = activity.participants.reduce((prev, curr) => {
+    const max = dataset.reduce((prev, curr) => {
       return Math.max(curr.totalOwed, curr.totalPaid, prev);
     }, 0);
     const scaled = max * 1.1;

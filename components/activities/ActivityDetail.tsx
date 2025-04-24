@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,13 +15,54 @@ import FloatingButtonGroup from "@/components/shared/ButtonGroup";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AddParticipant from "../participants/AddParticipant";
+import { DB } from "@/utils/DB";
+import { Participant } from "@/model/Participant";
+import { Expense } from "@/model/Expense";
 
 export default function ActivityDetail({ activity }: { activity: Activity }) {
   const router = useRouter();
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
+
+  const [activityParticipants, setActivityParticipants] = useState([]);
+  const [activityExpenses, setActivityExpenses] = useState([]);
   const [participantModal, setParticipantModal] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const [participantsResult, expensesResult] = await Promise.allSettled([
+        DB.get("participants", { activity_id: ["=", activity.id] }),
+        DB.get("expenses", { activity_id: ["=", activity.id] }),
+      ]);
+
+      // Handling participants
+      if (participantsResult.status === "fulfilled") {
+        const ps = participantsResult.value.map(
+          (row: any) => new Participant(row)
+        );
+        setActivityParticipants(ps);
+      } else {
+        console.error("Error loading participants:", participantsResult.reason);
+      }
+
+      // Handling expenses
+      if (expensesResult.status === "fulfilled") {
+        const es = expensesResult.value.map((row: any) => new Expense(row));
+        setActivityExpenses(es);
+      } else {
+        console.error("Error loading expenses:", expensesResult.reason);
+      }
+    } catch (error) {
+      console.error("Error loading activity data:", error);
+    } finally {
+      console.log("state participants: ", activityParticipants);
+    }
+  };
 
   const currencyHelper = (val: number) => {
     return Intl.NumberFormat("en-CA", {
@@ -32,7 +73,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
 
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],
-    cells: activity.participants.map((p) => {
+    cells: activityParticipants.map((p: any) => {
       const paid = p.totalPaid;
       const due = p.totalOwed;
       const net = paid - due;
@@ -57,7 +98,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
 
   const expenseData = {
     columns: ["Description", "Amount", "Paid By"],
-    cells: activity.expenses.map((e) => {
+    cells: activityExpenses.map((e: any) => {
       return {
         values: [
           e.description,
@@ -69,7 +110,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   };
 
   const isOverBudget = activity.budget
-    ? activity.totalAmount > activity.budget
+    ? activity.totals > activity.budget
     : false;
 
   const buttonGroup = [
@@ -120,13 +161,13 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
                 ]}
               >
                 {activity.budget
-                  ? currencyHelper(activity.budget - activity.totalAmount)
+                  ? currencyHelper(activity.budget - activity.totals)
                   : "N/A"}
               </Text>
             </View>
           </View>
           {/* Chart Section */}
-          <ActivityChart activity={activity}></ActivityChart>
+          <ActivityChart dataset={activityParticipants}></ActivityChart>
 
           {/* Toggle View */}
           <View style={styles.viewToggle}>

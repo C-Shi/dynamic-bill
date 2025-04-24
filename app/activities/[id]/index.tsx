@@ -6,7 +6,7 @@ import { useContext, useEffect } from "react";
 
 export default function ActivityIndexPage() {
   const { id } = useLocalSearchParams();
-  const { get, detail } = useContext(ActivityContext);
+  const { get } = useContext(ActivityContext);
 
   const activity: Activity = get(id as string);
 
@@ -15,7 +15,6 @@ export default function ActivityIndexPage() {
     navigation.setOptions({
       title: activity.title,
     });
-    detail(activity, ["expense", "participant"]);
   }, []);
 
   return <ActivityDetail activity={activity}></ActivityDetail>;

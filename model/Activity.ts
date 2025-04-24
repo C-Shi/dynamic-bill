@@ -1,8 +1,9 @@
-import { Participant } from "./Participant";
+
 import { Model } from './Core'
-import { DB } from "@/utils/db";
+import { DB } from "@/utils/DB";
 import { Expense } from "./Expense";
 import { ParticipantExpense } from "./ParticipantExpense";
+import { dollar } from '@/utils/Helper';
 
 export class Activity extends Model {
     protected static _table: string = 'activities';
@@ -19,15 +20,20 @@ export class Activity extends Model {
         if (activity?.type) {
             this.type = activity.type;
         }
+        if (activity?.participants) {
+            this.participants = activity.participants.split(',');
+        }
+        if (activity?.totals) {
+            this.totals = activity.totals;
+        }
     }
 
-    title!: string;
+    title: string;
     note?: string;
     budget?: number;
     type?: number;
-
-    participants: Participant[] = [];
-    expenses: Expense[] = [];
+    participants: string[] = [];
+    totals: number = 0;
 
     public toEntity(): { [key: string]: any } {
         return {
@@ -40,22 +46,6 @@ export class Activity extends Model {
         }
     }
 
-    public async save() {
-        const data = this.toEntity()
-        const columns = Object.keys(data)
-        const values = Object.values(data)
-        const query = `INSERT INTO activities ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
-
-        try {
-            return await DB.query(query, values)
-        } catch (e) {
-            if (__DEV__) {
-                console.log(e)
-            }
-            console.error('[INSERT FAIL] - activities')
-        }
-    }
-
     public async delete() {
         try {
             return await DB.query('DELETE FROM activities WHERE id = ?;', [this.id])
@@ -64,36 +54,24 @@ export class Activity extends Model {
         }
     }
 
-    public async addExpense(expense: Expense, expenseFor: string[]) {
-        /** Add Expense to DB */
-        console.log('add expense')
-        await expense.save()
-        /** Add Expense For Run Participant Sync */
-        await Promise.allSettled(expenseFor.map(async pid => {
-            const pe = new ParticipantExpense({ participantId: pid, expenseId: expense.id })
-            await pe.save()
-        }))
-    }
-
-    get totalAmount() {
-        return this.expenses.reduce((prev, curr) => {
-            return prev + curr.amount
-        }, 0)
-    }
+    // public async addExpense(expense: Expense, expenseFor: string[]) {
+    //     /** Add Expense to DB */
+    //     console.log('add expense')
+    //     await expense.save()
+    //     /** Add Expense For Run Participant Sync */
+    //     await Promise.allSettled(expenseFor.map(async pid => {
+    //         const pe = new ParticipantExpense({ participantId: pid, expenseId: expense.id })
+    //         await pe.save()
+    //     }))
+    // }
 
     get totalAmountDisplay(): string {
-        return Intl.NumberFormat("en-CA", {
-            style: "currency",
-            currency: "CAD"
-        }).format(this.totalAmount)
+        return dollar(this.totals)
     }
 
     get budgetAmountDisplay(): string {
         if (this.budget) {
-            return Intl.NumberFormat("en-CA", {
-                style: "currency",
-                currency: "CAD"
-            }).format(this.budget)
+            return dollar(this.budget)
         }
         return 'N/A'
     }
@@ -102,21 +80,11 @@ export class Activity extends Model {
         if (!this.budget) {
             return 'N/A'
         }
-        const remain = this.budget - this.totalAmount
-        return Intl.NumberFormat("en-CA", {
-            style: "currency",
-            currency: "CAD"
-        }).format(remain)
+        const remain = this.budget - this.totals
+        return dollar(remain)
     }
 
     get totalParticipant() {
         return this.participants.length
-    }
-
-    public static async all(): Promise<Activity[]> {
-        const activities = await DB.query('SELECT * FROM activities ORDER BY created_at DESC')
-        return activities.map((d: any) => {
-            return new this({ ...d, createdAt: d.created_at })
-        })
     }
 }

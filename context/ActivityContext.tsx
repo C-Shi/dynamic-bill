@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Activity } from "@/model/Activity";
-import { DB } from "@/utils/db";
+import { DB } from "@/utils/DB";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
 
@@ -49,20 +49,21 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchActivitiesDB = async () => {
-    const activitiesList = await Activity.all();
-    await Promise.all(
-      activitiesList.map(async (activity) => {
-        const [expenses, participants] = await Promise.all([
-          Expense.get({ activity_id: ["=", activity.id] }),
-          Participant.get({ activity_id: ["=", activity.id] }),
-        ]);
+    const rows = await DB.query(`
+      SELECT 
+        a.*,
+        GROUP_CONCAT(DISTINCT p.name) AS participants,
+        IFNULL(SUM(e.amount), 0) AS totals
 
-        activity.participants = participants;
-        activity.expenses = expenses;
-
-        return activity;
-      })
-    );
+      FROM activities a
+      LEFT JOIN expenses e ON e.activity_id = a.id
+      LEFT JOIN participant_expenses pe ON pe.expense_id = e.id
+      LEFT JOIN participants p ON p.id = pe.participant_id
+      GROUP BY a.id
+      ORDER BY a.created_at DESC;
+    `);
+    console.log(rows[0]);
+    const activitiesList = rows.map((r: any) => new Activity(r));
     dispatch({
       type: "GET_ACTIVITIES",
       payload: activitiesList,

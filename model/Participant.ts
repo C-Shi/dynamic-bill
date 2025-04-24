@@ -1,14 +1,14 @@
 import { Expense } from './Expense';
 import { Model } from './Core';
-import { DB } from '@/utils/db';
+import { DB } from '@/utils/DB';
 
 export class Participant extends Model {
     constructor(participant: { [key: string]: any }) {
         super(participant)
         this.name = participant.name;
         this.activityId = participant.activityId;
-        this.totalOwed = participant.totalOwed;
-        this.totalPaid = participant.totalPaid
+        this.totalOwed = participant.total_owed;
+        this.totalPaid = participant.total_paid
     }
 
     name: string;
@@ -61,22 +61,5 @@ export class Participant extends Model {
         } catch {
             console.error('[INSERT FAIL] - participants')
         }
-    }
-
-    public static async get(where?: { [key: string]: [string, string] }): Promise<Participant[]> {
-        let query = "SELECT * FROM participants";
-        let params: string[] = []
-        if (where) {
-            let temp: string[] = []
-            Object.keys(where).forEach(key => {
-                temp.push(`${key} ${where[key][0]} ?`)
-                params.push(where[key][1])
-            })
-            query = query + " where " + temp.join(' AND ')
-        }
-        const participants = await DB.query(query, params);
-        return participants.map((p: any) => {
-            return new this({ ...p, createdAt: p.created_at, activityId: p.activity_id, totalOwed: p.total_owed, totalPaid: p.total_paid })
-        })
     }
 }

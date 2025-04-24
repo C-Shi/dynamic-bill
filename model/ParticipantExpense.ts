@@ -1,7 +1,7 @@
 import { Participant } from './Participant';
 import { Expense } from './Expense';
 import { Model } from './Core';
-import { DB } from '@/utils/db';
+import { DB } from '@/utils/DB';
 export class ParticipantExpense extends Model {
     constructor(pe: { [key: string]: any }) {
         super(pe);

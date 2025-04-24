@@ -58,21 +58,16 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
       </View>
       <View style={styles.participantLine}>
         <View style={styles.participants}>
-          {visibleParticipant.map(
-            (
-              p: { id: Key | null | undefined; name: string },
-              index: number
-            ): any => (
-              <Avatar
-                key={p.id}
-                name={p.name}
-                style={{
-                  marginLeft: index === 0 ? 0 : -10,
-                  zIndex: 10 + index,
-                }}
-              />
-            )
-          )}
+          {visibleParticipant.map((p: string, index: number): any => (
+            <Avatar
+              key={index}
+              name={p}
+              style={{
+                marginLeft: index === 0 ? 0 : -10,
+                zIndex: 10 + index,
+              }}
+            />
+          ))}
           {invisibleParticipantCount > 0 && (
             <View style={styles.extraAvatar}>
               <Text style={styles.extraText}>+{invisibleParticipantCount}</Text>
