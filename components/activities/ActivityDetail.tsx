@@ -15,9 +15,7 @@ import FloatingButtonGroup from "@/components/shared/ButtonGroup";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AddParticipant from "../participants/AddParticipant";
-import { DB } from "@/utils/DB";
 import { Participant } from "@/model/Participant";
-import { Expense } from "@/model/Expense";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { dollar } from "@/utils/Helper";
 
@@ -26,45 +24,15 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
-  const { participants, expenses, add, reset } = useContext(
+  const { participants, expenses, set } = useContext(
     CurrentActivityDetailContext
   );
 
   const [participantModal, setParticipantModal] = useState(false);
 
   useEffect(() => {
-    loadData();
+    set(activity.id);
   }, []);
-
-  const loadData = async () => {
-    await reset();
-    try {
-      const [participantsResult, expensesResult] = await Promise.allSettled([
-        DB.get("participants", { activity_id: ["=", activity.id] }),
-        DB.get("expenses", { activity_id: ["=", activity.id] }),
-      ]);
-
-      // Handling participants
-      if (participantsResult.status === "fulfilled") {
-        const ps = participantsResult.value.map(
-          (row: any) => new Participant(row)
-        );
-        add.participants(ps);
-      } else {
-        console.error("Error loading participants:", participantsResult.reason);
-      }
-
-      // Handling expenses
-      if (expensesResult.status === "fulfilled") {
-        const es = expensesResult.value.map((row: any) => new Expense(row));
-        add.expenses(es);
-      } else {
-        console.error("Error loading expenses:", expensesResult.reason);
-      }
-    } catch (error) {
-      console.error("Error loading activity data:", error);
-    }
-  };
 
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],

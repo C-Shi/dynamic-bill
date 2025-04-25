@@ -22,6 +22,7 @@ import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
 import { DB } from "@/utils/DB";
 import { ParticipantExpense } from "@/model/ParticipantExpense";
+import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
 export default function NewExpense({
   activity,
@@ -31,6 +32,8 @@ export default function NewExpense({
   participants: Participant[];
 }) {
   const router = useRouter();
+  const { set } = useContext(CurrentActivityDetailContext);
+  const { update } = useContext(ActivityContext);
 
   const [newExpense, setNewExpense] = useState({
     description: "",
@@ -114,7 +117,7 @@ export default function NewExpense({
     try {
       await DB.insert("expenses", expData);
       await DB.insert("participant_expenses", peData);
-      await await DB.query(
+      await DB.query(
         `
           UPDATE participants
           SET 
@@ -135,13 +138,15 @@ export default function NewExpense({
               JOIN participant_expenses pe ON pe.expense_id = e.id
               WHERE pe.participant_id = participants.id
           )
-          WHERE id IN (${participants.map(() => "?").join(", ")});
+          WHERE activity_id = ?;
           `,
-        participants.map((p) => p.id)
+        [activity.id]
       );
     } catch (e) {
       alert("Add Expense Failed");
     } finally {
+      await set(activity.id);
+      await update(activity.id);
       router.back();
     }
   }

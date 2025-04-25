@@ -1,6 +1,6 @@
 import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   Modal,
   View,
@@ -11,6 +11,8 @@ import {
   Pressable,
 } from "react-native";
 import Colors from "@/constant/Color";
+import { ActivityContext } from "@/context/ActivityContext";
+import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
 export default function AddParticipant({
   activity,
@@ -21,6 +23,8 @@ export default function AddParticipant({
   open: boolean;
   close: (val: boolean) => void;
 }) {
+  const { update } = useContext(ActivityContext);
+  const { set } = useContext(CurrentActivityDetailContext);
   const [participantName, setParticipantName] = useState("");
 
   async function onAddParticipant() {
@@ -38,6 +42,8 @@ export default function AddParticipant({
     } catch (e) {
       alert("Unable to save participant");
     } finally {
+      await set(activity.id);
+      await update(activity.id);
       close(false);
     }
   }

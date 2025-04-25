@@ -8,6 +8,7 @@ type ActivityContextType = {
   activities: Activity[];
   add: (activity: Activity) => Promise<any>;
   remove: (activity: Activity) => Promise<any>;
+  update: (id: string) => Promise<void>;
   get: (id: string) => Activity;
 };
 
@@ -28,7 +29,7 @@ function reducer(
       return state.filter(
         (activity: Activity) => activity.id !== (action.payload as Activity).id
       );
-    case "FETCH_DETAIL":
+    case "UPDATE_ACTIVITY":
       return state.map((activity: Activity) => {
         if (activity.id === (action.payload as Activity).id) {
           return action.payload;
@@ -68,6 +69,30 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const fetchActivityDB = async (id: string) => {
+    const row = await DB.first(
+      `
+      SELECT 
+        a.*,
+        GROUP_CONCAT(DISTINCT p.name) AS participants,
+        IFNULL(SUM(e.amount), 0) AS totals
+
+      FROM activities a
+      LEFT JOIN expenses e ON e.activity_id = a.id
+      LEFT JOIN participant_expenses pe ON pe.expense_id = e.id
+      LEFT JOIN participants p ON p.activity_id = a.id
+      WHERE a.id = ?
+      GROUP BY a.id;
+    `,
+      [id]
+    );
+    const activity = new Activity(row);
+    dispatch({
+      type: "UPDATE_ACTIVITY",
+      payload: activity,
+    });
+  };
+
   const add = async (activity: Activity): Promise<any> => {
     /** @todo Optimize save process - data consistency between state and db */
     try {
@@ -98,11 +123,16 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     return activities.find((a: Activity) => a.id === id);
   };
 
+  const update = async (id: string): Promise<void> => {
+    fetchActivityDB(id);
+  };
+
   const value = {
     activities,
     add,
     remove,
     get,
+    update,
   };
 
   return (

@@ -1,6 +1,7 @@
 import { ReactNode, createContext, useState } from "react";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
+import { DB } from "@/utils/DB";
 
 const CurrentActivityDetailContext = createContext({} as any);
 
@@ -14,9 +15,36 @@ export function CurrentActivityDetailContextProvider({
   const [participants, setParticipants] = useState([] as Participant[]);
   const [expenses, setExpenses] = useState([] as Expense[]);
 
-  const reset = () => {
+  const set = async (id: string) => {
     setParticipants([] as Participant[]);
     setExpenses([] as Expense[]);
+
+    try {
+      const [participantsResult, expensesResult] = await Promise.allSettled([
+        DB.get("participants", { activity_id: ["=", id] }),
+        DB.get("expenses", { activity_id: ["=", id] }),
+      ]);
+
+      // Handling participants
+      if (participantsResult.status === "fulfilled") {
+        const ps = participantsResult.value.map(
+          (row: any) => new Participant(row)
+        );
+        add.participants(ps);
+      } else {
+        console.error("Error loading participants:", participantsResult.reason);
+      }
+
+      // Handling expenses
+      if (expensesResult.status === "fulfilled") {
+        const es = expensesResult.value.map((row: any) => new Expense(row));
+        add.expenses(es);
+      } else {
+        console.error("Error loading expenses:", expensesResult.reason);
+      }
+    } catch (error) {
+      console.error("Error loading activity data:", error);
+    }
   };
 
   const add = {
@@ -40,7 +68,7 @@ export function CurrentActivityDetailContextProvider({
     },
   };
 
-  const value = { add, participants, expenses, reset };
+  const value = { add, participants, expenses, set };
 
   return (
     <CurrentActivityDetailContext.Provider value={value}>
