@@ -9,7 +9,6 @@ type ActivityContextType = {
   add: (activity: Activity) => Promise<any>;
   remove: (activity: Activity) => Promise<any>;
   get: (id: string) => Activity;
-  detail: (activity: Activity, type?: Array<any>) => Promise<any>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -58,11 +57,10 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
       FROM activities a
       LEFT JOIN expenses e ON e.activity_id = a.id
       LEFT JOIN participant_expenses pe ON pe.expense_id = e.id
-      LEFT JOIN participants p ON p.id = pe.participant_id
+      LEFT JOIN participants p ON p.activity_id = a.id
       GROUP BY a.id
       ORDER BY a.created_at DESC;
     `);
-    console.log(rows[0]);
     const activitiesList = rows.map((r: any) => new Activity(r));
     dispatch({
       type: "GET_ACTIVITIES",
@@ -73,12 +71,15 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const add = async (activity: Activity): Promise<any> => {
     /** @todo Optimize save process - data consistency between state and db */
     try {
-      await activity.save();
-      await Promise.allSettled(
-        activity.participants.map(async (p: Participant) => {
-          await p.save();
-        })
+      const entity = activity.toEntity();
+      const participants = activity.participants.map((p) =>
+        new Participant({
+          name: p,
+          activityId: activity.id,
+        }).toEntity()
       );
+      await DB.insert("activities", entity);
+      await DB.insert("participants", participants);
       dispatch({ type: "ADD_ACTIVITY", payload: activity });
     } finally {
     }
@@ -87,7 +88,7 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const remove = async (activity: Activity): Promise<any> => {
     // SPACE FOR Cascading delete
     try {
-      await activity.delete();
+      await DB.delete("activities", activity.id);
       dispatch({ type: "REMOVE_ACTIVITY", payload: activity });
     } finally {
     }
@@ -97,42 +98,11 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     return activities.find((a: Activity) => a.id === id);
   };
 
-  const detail = async (
-    activity: Activity,
-    relation?: Array<any>
-  ): Promise<any> => {
-    /** Update inplace */
-    if (!relation) {
-      relation = ["expense", "participant"];
-    }
-    try {
-      if (relation.find((r) => r === "expense")) {
-        await Promise.allSettled(
-          await activity.expenses.map(async (e) => await e.detail())
-        );
-      }
-    } catch {
-      console.error("Unable to fetch expense detail for activity");
-    }
-    try {
-      if (relation.find((r) => r === "participant")) {
-        await Promise.allSettled(
-          await activity.participants.map(async (p) => await p.detail())
-        );
-      }
-    } catch {
-      console.error("Unable to fetch participant detail for activity");
-    }
-    /** Trigger state update */
-    dispatch({ type: "FETCH_DETAIL", payload: activity });
-  };
-
   const value = {
     activities,
     add,
     remove,
     get,
-    detail,
   };
 
   return (

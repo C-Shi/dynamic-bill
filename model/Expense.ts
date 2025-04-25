@@ -6,9 +6,18 @@ import { Participant } from './Participant';
 export class Expense extends Model {
     constructor(expense: { [key: string]: any }) {
         super(expense)
-        this.activityId = expense.activityId ?? null;
+        if (expense.activity_id) {
+            this.activityId = expense.activity_id;
+        } else {
+            this.activityId = expense.activityId ?? null
+        }
         this.description = expense.description;
-        this.paidBy = expense.paidBy;
+
+        if (expense.paid_by) {
+            this.paidBy = expense.paid_by
+        } else {
+            this.paidBy = expense.paidBy;
+        }
         this.amount = expense.amount;
         this.date = expense.date;
     }

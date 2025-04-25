@@ -198,10 +198,28 @@ export class SQLiteAdapter {
         return rows
     }
 
-    public static async insert(table: string, data: { [key: string]: string | number }): Promise<any> {
-        const columns = Object.keys(data)
-        const values = Object.values(data)
-        const query = `INSERT INTO ? ( ${columns.join(', ')} ) VALUES ( ${new Array(columns.length).fill("?").join(', ')} )`
-        return this.query(query, [table, ...values])
+    public static async insert(
+        table: string,
+        data: { [key: string]: string | number } | { [key: string]: string | number }[]
+    ): Promise<any> {
+        const rows = Array.isArray(data) ? data : [data];
+
+        if (rows.length === 0) {
+            throw new Error("No data to insert.");
+        }
+
+        const columns = Object.keys(rows[0]);
+        const placeholders = `(${new Array(columns.length).fill("?").join(", ")})`;
+        const query = `INSERT INTO ${table} (${columns.join(", ")}) VALUES ${rows.map(() => placeholders).join(", ")}`;
+
+        const values = rows.flatMap((row) => columns.map((col) => row[col]));
+
+        return await this.query(query, values);
+    }
+
+
+    public static async delete(table: string, id: string): Promise<any> {
+        const query = `DELETE FROM ${table} WHERE id = ?`;
+        return await this.query(query, [id])
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -18,15 +18,18 @@ import AddParticipant from "../participants/AddParticipant";
 import { DB } from "@/utils/DB";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
+import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
+import { dollar } from "@/utils/Helper";
 
 export default function ActivityDetail({ activity }: { activity: Activity }) {
   const router = useRouter();
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
+  const { participants, expenses, add, reset } = useContext(
+    CurrentActivityDetailContext
+  );
 
-  const [activityParticipants, setActivityParticipants] = useState([]);
-  const [activityExpenses, setActivityExpenses] = useState([]);
   const [participantModal, setParticipantModal] = useState(false);
 
   useEffect(() => {
@@ -34,6 +37,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   }, []);
 
   const loadData = async () => {
+    await reset();
     try {
       const [participantsResult, expensesResult] = await Promise.allSettled([
         DB.get("participants", { activity_id: ["=", activity.id] }),
@@ -45,7 +49,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
         const ps = participantsResult.value.map(
           (row: any) => new Participant(row)
         );
-        setActivityParticipants(ps);
+        add.participants(ps);
       } else {
         console.error("Error loading participants:", participantsResult.reason);
       }
@@ -53,37 +57,23 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
       // Handling expenses
       if (expensesResult.status === "fulfilled") {
         const es = expensesResult.value.map((row: any) => new Expense(row));
-        setActivityExpenses(es);
+        add.expenses(es);
       } else {
         console.error("Error loading expenses:", expensesResult.reason);
       }
     } catch (error) {
       console.error("Error loading activity data:", error);
-    } finally {
-      console.log("state participants: ", activityParticipants);
     }
-  };
-
-  const currencyHelper = (val: number) => {
-    return Intl.NumberFormat("en-CA", {
-      style: "currency",
-      currency: "CAD",
-    }).format(val);
   };
 
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],
-    cells: activityParticipants.map((p: any) => {
+    cells: participants.map((p: any) => {
       const paid = p.totalPaid;
       const due = p.totalOwed;
       const net = paid - due;
       return {
-        values: [
-          p.name,
-          currencyHelper(paid),
-          currencyHelper(due),
-          currencyHelper(net),
-        ],
+        values: [p.name, dollar(paid), dollar(due), dollar(net)],
         styles: [
           null,
           null,
@@ -98,12 +88,13 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
 
   const expenseData = {
     columns: ["Description", "Amount", "Paid By"],
-    cells: activityExpenses.map((e: any) => {
+    cells: expenses.map((e: any) => {
       return {
         values: [
           e.description,
-          currencyHelper(e.amount),
-          e.paidByParticipant?.name || "Unknown",
+          dollar(e.amount),
+          participants.find((p: Participant) => p.id === e.paidBy)?.name ||
+            "Unknown",
         ],
       };
     }),
@@ -161,13 +152,15 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
                 ]}
               >
                 {activity.budget
-                  ? currencyHelper(activity.budget - activity.totals)
+                  ? dollar(activity.budget - activity.totals)
                   : "N/A"}
               </Text>
             </View>
           </View>
           {/* Chart Section */}
-          <ActivityChart dataset={activityParticipants}></ActivityChart>
+          {participants.length > 0 && (
+            <ActivityChart dataset={participants}></ActivityChart>
+          )}
 
           {/* Toggle View */}
           <View style={styles.viewToggle}>

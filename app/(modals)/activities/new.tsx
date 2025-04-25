@@ -2,6 +2,7 @@ import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
 import { useContext, useEffect, useState } from "react";
 import { ActivityType } from "@/model/ActivityType";
+import { DB } from "@/utils/DB";
 import {
   View,
   Text,
@@ -38,7 +39,7 @@ export default function NewActivity() {
 
   useEffect(() => {
     (async () => {
-      const data = await ActivityType.all();
+      const data = await DB.get("activity_types");
       setActivityTypes(data as []);
     })();
   }, []);
@@ -83,11 +84,11 @@ export default function NewActivity() {
       return;
     }
     try {
-      const data = new Activity(newActivity);
-      data.participants = participantList.map(
-        (p: string) => new Participant({ name: p, activityId: data.id })
-      );
-      await activityCtx.add(data);
+      let data = { ...newActivity };
+      data.participants = participantList;
+      data.totals = 0;
+      console.log(data);
+      await activityCtx.add(new Activity(data));
       router.back();
     } catch {
       Alert.alert("Operation Failed!", "Unable to create activity");

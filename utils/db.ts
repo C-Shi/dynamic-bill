@@ -7,7 +7,8 @@ interface IDatabaseAdapter {
     query(query: string, params: any[]): Promise<any[]>;
     first(query: string, params: any[]): Promise<any>;
     get(table: string, where?: { [key: string]: [string, string] }): Promise<any[]>;
-    insert(table: string, data: { [key: string]: string | number }): Promise<any>;
+    insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<any>;
+    delete(table: string, id: string): Promise<void>;
 }
 
 export class DB {
@@ -38,5 +39,15 @@ export class DB {
     static async get(table: string, where?: { [key: string]: [string, string] }): Promise<any> {
         console.log(`Table: ${table} - DB.get`)
         return DB.adapter.get(table, where);
+    }
+
+    public static async insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<any> {
+        console.log(`Table ${table} - DB.Insert`)
+        return DB.adapter.insert(table, data)
+    }
+
+    public static async delete(table: string, id: string): Promise<void> {
+        console.log(`Table ${table} DELETE ${id}`)
+        DB.adapter.delete(table, id)
     }
 }

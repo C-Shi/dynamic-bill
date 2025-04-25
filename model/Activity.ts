@@ -21,7 +21,11 @@ export class Activity extends Model {
             this.type = activity.type;
         }
         if (activity?.participants) {
-            this.participants = activity.participants.split(',');
+            if (Array.isArray(activity.participants)) {
+                this.participants = activity.participants
+            } else {
+                this.participants = activity.participants.split(',');
+            }
         }
         if (activity?.totals) {
             this.totals = activity.totals;
@@ -43,14 +47,6 @@ export class Activity extends Model {
             note: this.note ?? null,
             type: this.type ?? 'Other',
             created_at: this.createdAt.toISOString(),
-        }
-    }
-
-    public async delete() {
-        try {
-            return await DB.query('DELETE FROM activities WHERE id = ?;', [this.id])
-        } catch {
-            console.error('[DELETE FAIL] - activities')
         }
     }
 

@@ -19,10 +19,18 @@ import {
   Divider,
 } from "react-native-paper";
 import { Activity } from "@/model/Activity";
+import { Participant } from "@/model/Participant";
+import { DB } from "@/utils/DB";
+import { ParticipantExpense } from "@/model/ParticipantExpense";
 
-export default function NewExpense({ activity }: { activity: Activity }) {
+export default function NewExpense({
+  activity,
+  participants,
+}: {
+  activity: Activity;
+  participants: Participant[];
+}) {
   const router = useRouter();
-  const { detail } = useContext(ActivityContext);
 
   const [newExpense, setNewExpense] = useState({
     description: "",
@@ -32,7 +40,7 @@ export default function NewExpense({ activity }: { activity: Activity }) {
   });
 
   const [newExpenseFor, setNewExpenseFor] = useState(
-    activity.participants.map((p) => p.id)
+    participants.map((p) => p.id)
   );
 
   const [menuVisible, setMenuVisible] = useState(false);
@@ -59,7 +67,7 @@ export default function NewExpense({ activity }: { activity: Activity }) {
   }
 
   function onPaidForEveryone() {
-    setNewExpenseFor(activity.participants.map((p) => p.id));
+    setNewExpenseFor(participants.map((p) => p.id));
   }
 
   function validated() {
@@ -94,11 +102,43 @@ export default function NewExpense({ activity }: { activity: Activity }) {
       ...newExpense,
       activityId: activity.id,
       date: new Date(newExpense.date),
+    }).toEntity();
+
+    const peData = newExpenseFor.map((e) => {
+      return new ParticipantExpense({
+        expenseId: expData.id,
+        participantId: e,
+      }).toEntity();
     });
 
     try {
-      await activity.addExpense(expData, newExpenseFor);
-      await detail(activity);
+      await DB.insert("expenses", expData);
+      await DB.insert("participant_expenses", peData);
+      await await DB.query(
+        `
+          UPDATE participants
+          SET 
+          total_paid = (
+              SELECT COALESCE(SUM(e.amount), 0)
+              FROM expenses e
+              WHERE e.paid_by = participants.id
+          ),
+          total_owed = (
+              SELECT COALESCE(SUM(
+              e.amount / (
+                  SELECT COUNT(*) 
+                  FROM participant_expenses pe2 
+                  WHERE pe2.expense_id = e.id
+              )
+              ), 0)
+              FROM expenses e
+              JOIN participant_expenses pe ON pe.expense_id = e.id
+              WHERE pe.participant_id = participants.id
+          )
+          WHERE id IN (${participants.map(() => "?").join(", ")});
+          `,
+        participants.map((p) => p.id)
+      );
     } catch (e) {
       alert("Add Expense Failed");
     } finally {
@@ -138,12 +178,12 @@ export default function NewExpense({ activity }: { activity: Activity }) {
               style={styles.dropdownButton}
               textColor={Colors.Background}
             >
-              {activity.participants.find((p) => p.id === newExpense.paidBy)
-                ?.name || "Select Payer"}
+              {participants.find((p) => p.id === newExpense.paidBy)?.name ||
+                "Select Payer"}
             </Button>
           }
         >
-          {activity.participants.map((p) => (
+          {participants.map((p) => (
             <Menu.Item
               key={p.name}
               onPress={() => onPaidByChange(p)}
@@ -154,12 +194,12 @@ export default function NewExpense({ activity }: { activity: Activity }) {
         </Menu>
         <Text style={styles.label}>Paid For</Text>
         <View style={{ marginBottom: 24 }}>
-          {newExpenseFor.length < activity.participants.length && (
+          {newExpenseFor.length < participants.length && (
             <>
               <Checkbox.Item
                 label="Every One"
                 status={
-                  newExpenseFor.length === activity.participants.length
+                  newExpenseFor.length === participants.length
                     ? "checked"
                     : "unchecked"
                 }
@@ -170,7 +210,7 @@ export default function NewExpense({ activity }: { activity: Activity }) {
             </>
           )}
 
-          {activity.participants.map((participant) => (
+          {participants.map((participant) => (
             <Checkbox.Item
               key={participant.id}
               label={participant.name}
