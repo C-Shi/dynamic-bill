@@ -1,8 +1,5 @@
 
 import { Model } from './Core'
-import { DB } from "@/utils/DB";
-import { Expense } from "./Expense";
-import { ParticipantExpense } from "./ParticipantExpense";
 import { dollar } from '@/utils/Helper';
 
 export class Activity extends Model {
@@ -49,17 +46,6 @@ export class Activity extends Model {
             created_at: this.createdAt.toISOString(),
         }
     }
-
-    // public async addExpense(expense: Expense, expenseFor: string[]) {
-    //     /** Add Expense to DB */
-    //     console.log('add expense')
-    //     await expense.save()
-    //     /** Add Expense For Run Participant Sync */
-    //     await Promise.allSettled(expenseFor.map(async pid => {
-    //         const pe = new ParticipantExpense({ participantId: pid, expenseId: expense.id })
-    //         await pe.save()
-    //     }))
-    // }
 
     get totalAmountDisplay(): string {
         return dollar(this.totals)

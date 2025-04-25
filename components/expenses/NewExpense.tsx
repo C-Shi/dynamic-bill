@@ -117,31 +117,31 @@ export default function NewExpense({
     try {
       await DB.insert("expenses", expData);
       await DB.insert("participant_expenses", peData);
-      await DB.query(
-        `
-          UPDATE participants
-          SET 
-          total_paid = (
-              SELECT COALESCE(SUM(e.amount), 0)
-              FROM expenses e
-              WHERE e.paid_by = participants.id
-          ),
-          total_owed = (
-              SELECT COALESCE(SUM(
-              e.amount / (
-                  SELECT COUNT(*) 
-                  FROM participant_expenses pe2 
-                  WHERE pe2.expense_id = e.id
-              )
-              ), 0)
-              FROM expenses e
-              JOIN participant_expenses pe ON pe.expense_id = e.id
-              WHERE pe.participant_id = participants.id
-          )
-          WHERE activity_id = ?;
-          `,
-        [activity.id]
-      );
+      // await DB.query(
+      //   `
+      //     UPDATE participants
+      //     SET
+      //     total_paid = (
+      //         SELECT COALESCE(SUM(e.amount), 0)
+      //         FROM expenses e
+      //         WHERE e.paid_by = participants.id
+      //     ),
+      //     total_owed = (
+      //         SELECT COALESCE(SUM(
+      //         e.amount / (
+      //             SELECT COUNT(*)
+      //             FROM participant_expenses pe2
+      //             WHERE pe2.expense_id = e.id
+      //         )
+      //         ), 0)
+      //         FROM expenses e
+      //         JOIN participant_expenses pe ON pe.expense_id = e.id
+      //         WHERE pe.participant_id = participants.id
+      //     )
+      //     WHERE activity_id = ?;
+      //     `,
+      //   [activity.id]
+      // );
     } catch (e) {
       alert("Add Expense Failed");
     } finally {

@@ -13,6 +13,7 @@ import {
 import Colors from "@/constant/Color";
 import { ActivityContext } from "@/context/ActivityContext";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
+import { DB } from "@/utils/DB";
 
 export default function AddParticipant({
   activity,
@@ -35,10 +36,10 @@ export default function AddParticipant({
     const data = new Participant({
       name: participantName.trim(),
       activityId: activity.id,
-    });
+    }).toEntity();
 
     try {
-      await data.save();
+      await DB.insert("participants", data);
     } catch (e) {
       alert("Unable to save participant");
     } finally {
