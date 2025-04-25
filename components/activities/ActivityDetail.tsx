@@ -85,7 +85,15 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
           color={Colors.Background}
         />
       ),
-      onPress: () => setParticipantModal(true),
+      onPress: () => {
+        if (expenses.length > 0) {
+          alert(
+            "Cannot add participant for activities with expenses. This limitation will be removed on v2"
+          );
+        } else {
+          setParticipantModal(true);
+        }
+      },
     },
     {
       icon: <FontAwesome name="dollar" size={24} color={Colors.Background} />,
@@ -140,7 +148,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
                   : styles.inactiveView
               }
             >
-              <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
+              <Text style={styles.buttonText}>PARTICIPANTS</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setViewType("expenses")}

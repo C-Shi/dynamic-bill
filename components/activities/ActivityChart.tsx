@@ -5,11 +5,33 @@ import ActivityBarChart from "./ActivityBarChart";
 
 import React, { useState } from "react";
 import { Participant } from "@/model/Participant";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
   const [chartType, setChartType] = useState<"contribution" | "settlement">(
     "contribution"
   );
+
+  // check if there is expenses, if not no need to show any graph
+  const ttl = dataset.reduce((prev: number, p: Participant): number => {
+    return p.totalPaid + prev;
+  }, 0);
+
+  if (ttl === 0) {
+    return (
+      <View style={[styles.container, styles.textContainer]}>
+        <MaterialIcons
+          name="info-outline"
+          size={60}
+          color={Colors.Coffee}
+          style={styles.icon}
+        />
+        <View>
+          <Text style={styles.title}>No Data Available (Yet)</Text>
+        </View>
+      </View>
+    );
+  }
 
   const chartColorSet = ColorSet.newSet(dataset.length);
 
@@ -119,6 +141,19 @@ const styles = StyleSheet.create({
   buttonText: {
     color: Colors.Main,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  icon: {
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  title: {
+    color: Colors.Coffee,
+    fontWeight: "bold",
+    fontSize: 16,
     textAlign: "center",
   },
 });

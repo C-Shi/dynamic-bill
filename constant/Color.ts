@@ -8,6 +8,7 @@ const Colors = {
     Danger: "#FF3B30",
     Success: "#16A34A",
     Dark: "#000000",
+    Coffee: "#b45309",
 }
 
 class ColorSet {

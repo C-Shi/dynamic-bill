@@ -3,8 +3,6 @@ import { Model } from './Core'
 import { dollar } from '@/utils/Helper';
 
 export class Activity extends Model {
-    protected static _table: string = 'activities';
-
     constructor(activity?: { [key: string]: any }) {
         super(activity)
         this.title = activity?.title ?? "";
