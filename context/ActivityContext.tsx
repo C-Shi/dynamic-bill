@@ -50,17 +50,10 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
 
   const fetchActivitiesDB = async () => {
     const rows = await DB.query(`
-      SELECT 
-        a.*,
-        GROUP_CONCAT(DISTINCT p.name) AS participants,
-        IFNULL(SUM(e.amount), 0) AS totals
-
-      FROM activities a
-      LEFT JOIN expenses e ON e.activity_id = a.id
-      LEFT JOIN participant_expenses pe ON pe.expense_id = e.id
-      LEFT JOIN participants p ON p.activity_id = a.id
-      GROUP BY a.id
-      ORDER BY a.created_at DESC;
+      SELECT a.*, GROUP_CONCAT(DISTINCT p.name) AS participants,
+      (SELECT IFNULL(SUM(amount), 0) FROM expenses e WHERE e.activity_id = a.id) AS totals
+      FROM activities a LEFT JOIN participants p ON a.id = p.activity_id 
+      GROUP BY a.id;
     `);
     const activitiesList = rows.map((r: any) => new Activity(r));
     dispatch({
@@ -72,17 +65,10 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const fetchActivityDB = async (id: string) => {
     const row = await DB.first(
       `
-      SELECT 
-        a.*,
-        GROUP_CONCAT(DISTINCT p.name) AS participants,
-        IFNULL(SUM(e.amount), 0) AS totals
-
-      FROM activities a
-      LEFT JOIN expenses e ON e.activity_id = a.id
-      LEFT JOIN participant_expenses pe ON pe.expense_id = e.id
-      LEFT JOIN participants p ON p.activity_id = a.id
-      WHERE a.id = ?
-      GROUP BY a.id;
+      SELECT a.*, GROUP_CONCAT(DISTINCT p.name) AS participants,
+      (SELECT IFNULL(SUM(amount), 0) FROM expenses e WHERE e.activity_id = a.id) AS totals
+      FROM activities a LEFT JOIN participants p ON a.id = p.activity_id 
+      WHERE a.id = ? GROUP BY a.id;
     `,
       [id]
     );
