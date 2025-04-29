@@ -171,12 +171,21 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
         </ScrollView>
       </View>
       <View style={styles.fabContainer}>
+        {expenses.length > 0 && (
+          <TouchableOpacity style={styles.settleBtn}>
+            <Ionicons
+              name="receipt-outline"
+              size={32}
+              color={Colors.Background}
+            />
+          </TouchableOpacity>
+        )}
         <FloatingButtonGroup
           buttons={buttonGroup}
           backgroundColor={Colors.Primary}
           color={Colors.Background}
           shadow
-          direction="left"
+          direction="up"
         ></FloatingButtonGroup>
       </View>
 
@@ -283,6 +292,22 @@ const styles = StyleSheet.create({
     bottom: 40,
     right: 30,
     left: 0,
-    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  settleBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 60 / 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+    backgroundColor: Colors.Secondary,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6, // for Android
+    marginRight: 10,
   },
 });
