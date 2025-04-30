@@ -39,4 +39,8 @@ export class Participant extends Model {
         }
 
     }
+
+    get net(): number {
+        return this.totalPaid - this.totalOwed
+    }
 }

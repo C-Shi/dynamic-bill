@@ -6,6 +6,18 @@ import Colors from "@/constant/Color";
 import { CurrentActivityDetailContextProvider } from "@/context/CurrentActivityDetailContext";
 import { DB } from "@/utils/DB";
 
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from "react-native-reanimated";
+
+if (__DEV__) {
+  configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Disable strict mode
+  });
+}
+
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
   useEffect(() => {

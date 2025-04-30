@@ -172,7 +172,10 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
       </View>
       <View style={styles.fabContainer}>
         {expenses.length > 0 && (
-          <TouchableOpacity style={styles.settleBtn}>
+          <TouchableOpacity
+            style={styles.settleBtn}
+            onPress={() => router.push(`/activities/${activity.id}/settlement`)}
+          >
             <Ionicons
               name="receipt-outline"
               size={32}

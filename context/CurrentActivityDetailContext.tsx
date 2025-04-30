@@ -12,10 +12,12 @@ export function CurrentActivityDetailContextProvider({
 }: {
   children: ReactNode;
 }) {
+  const [activtyId, setActivityId] = useState<string | undefined>(undefined);
   const [participants, setParticipants] = useState([] as Participant[]);
   const [expenses, setExpenses] = useState([] as Expense[]);
 
   const set = async (id: string) => {
+    setActivityId(id);
     setParticipants([] as Participant[]);
     setExpenses([] as Expense[]);
 
@@ -68,7 +70,7 @@ export function CurrentActivityDetailContextProvider({
     },
   };
 
-  const value = { add, participants, expenses, set };
+  const value = { add, participants, expenses, set, activtyId };
 
   return (
     <CurrentActivityDetailContext.Provider value={value}>
