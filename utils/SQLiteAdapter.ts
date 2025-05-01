@@ -17,10 +17,10 @@ export class SQLiteAdapter {
         }
         await db.withTransactionAsync(async () => {
             await db.execAsync(`
-                DROP TABLE activities;
-                DROP TABLE participants;
-                DROP TABLE expenses;
-                DROP TABLE participant_expenses;
+                DROP TABLE IF EXISTS activities;
+                DROP TABLE IF EXISTS participants;
+                DROP TABLE IF EXISTS expenses;
+                DROP TABLE IF EXISTS participant_expenses;
 
                 CREATE TABLE IF NOT EXISTS activities (
                 id TEXT PRIMARY KEY,

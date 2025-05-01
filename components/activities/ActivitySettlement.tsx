@@ -1,31 +1,54 @@
 import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
-import { dollar, minimumTrasactionStrategy } from "@/utils/Helper";
+import {
+  dollar,
+  minimumTrasactionStrategy,
+  proportionalOneToManyStrategy,
+} from "@/utils/Helper";
 import { View, Text, StyleSheet } from "react-native";
 import Avatar from "../shared/Avatar";
 import Colors from "@/constant/Color";
 import { useState, useEffect } from "react";
 
-type MinimumTrasactionSettlementProp = {
-  activity: Activity;
+type SettlementProp = {
+  strategy: "minimum" | "proportional";
   participants: Participant[];
 };
 
-export default function MinimumTrasactionSettlement({
-  activity,
+const STRATEGY_PROP = {
+  minimum: {
+    name: "Minimum Transaction",
+    analysis:
+      "The minimum transaction strategy is a way to settle group expenses using the fewest payments possible. It works by calculating each person's net balance and matching debtors to creditors. The algorithm then transfers the minimum necessary amount between them until all balances are zero.",
+  },
+  proportional: {
+    name: "Proportional One-To-Many",
+    analysis:
+      "Each debtor pays all creditors in proportion to how much the creditors are owed. This ensures fairness by distributing each debtor’s debt based on the relative claims of the creditors. Any rounding differences are corrected by adjusting the largest payment to maintain balance.",
+  },
+};
+
+export default function ActivitySettlement({
+  strategy,
   participants,
-}: MinimumTrasactionSettlementProp) {
+}: SettlementProp) {
   const [payments, setPayments] = useState<any[]>([]);
 
   useEffect(() => {
-    loadSettlement();
-  }, [activity.id]);
-
-  async function loadSettlement() {
     setPayments(() => {
-      return minimumTrasactionStrategy(participants);
+      switch (strategy) {
+        case "minimum":
+          return minimumTrasactionStrategy(participants);
+        case "proportional":
+          return proportionalOneToManyStrategy(participants);
+        default:
+          return [];
+      }
     });
-  }
+  }, []);
+
+  const totalCirculate = payments.reduce((t, p) => t + p.amount, 0);
+
   const paymentPerParticipant = participants
     .sort((a: Participant, b: Participant) => b.net - a.net)
     .map((p: Participant) => {
@@ -91,13 +114,13 @@ export default function MinimumTrasactionSettlement({
     <>
       <View style={styles.info}>
         <View>
-          <Text style={styles.infoTitle}>Total Spending</Text>
-          <Text style={styles.infoMain}>{activity?.totalAmountDisplay}</Text>
+          <Text style={styles.infoTitle}>Total Payout</Text>
+          <Text style={styles.infoMain}>{dollar(totalCirculate)}</Text>
         </View>
         <View style={styles.verticalDivider} />
         <View>
           <Text style={styles.infoTitle}>Participants</Text>
-          <Text style={styles.infoMain}>{activity.participants.length}</Text>
+          <Text style={styles.infoMain}>{participants.length}</Text>
         </View>
         <View style={styles.verticalDivider} />
         <View>
@@ -112,20 +135,14 @@ export default function MinimumTrasactionSettlement({
           Settlement Plan
         </Text>
         <Text style={{ color: Colors.SubText, fontSize: 12 }}>
-          Minimum Transactions
+          {STRATEGY_PROP[strategy].name}
         </Text>
       </View>
       <View>{participants.length > 0 && paymentPerParticipant}</View>
       {/** AI Analysis */}
       <View style={styles.ai}>
         <Text style={styles.aih}>🤖 AI Analysis</Text>
-        <Text style={styles.aib}>
-          The minimum transaction strategy is a way to settle group expenses
-          using the fewest payments possible. It works by calculating each
-          person's net balance and matching debtors to creditors. The algorithm
-          then transfers the minimum necessary amount between them until all
-          balances are zero.
-        </Text>
+        <Text style={styles.aib}>{STRATEGY_PROP[strategy].analysis}</Text>
       </View>
     </>
   );

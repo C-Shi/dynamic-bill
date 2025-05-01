@@ -1,5 +1,6 @@
 const Colors = {
     Primary: "#4A90E2",
+    Light: "#B0D4F1",
     Secondary: "#9B6ADE",
     Background: "#FFFFFF",
     Card: "#E9ECEF",

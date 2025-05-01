@@ -1,64 +1,97 @@
-import { ActivityContext } from "@/context/ActivityContext";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
-import { minimumTrasactionStrategy, dollar } from "@/utils/Helper";
-import { useLocalSearchParams } from "expo-router";
-import { useContext, useEffect, useState, useRef } from "react";
-import { Dimensions, View } from "react-native";
-import { Activity } from "@/model/Activity";
+import { useContext, useState } from "react";
+import {
+  Dimensions,
+  View,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
 import Colors from "@/constant/Color";
-import MinimumTrasactionSettlement from "@/components/activities/MinimumTransactionSettlement";
+import ActivitySettlement from "@/components/activities/ActivitySettlement";
+import { useHeaderHeight } from "@react-navigation/elements";
 
-import Carousel, {
-  ICarouselInstance,
-  Pagination,
-} from "react-native-reanimated-carousel";
-import { useSharedValue } from "react-native-reanimated";
+import Carousel from "react-native-reanimated-carousel";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Settlement() {
-  const { id } = useLocalSearchParams();
   const { participants } = useContext(CurrentActivityDetailContext);
-  const { get } = useContext(ActivityContext);
-
   const { width, height } = Dimensions.get("window");
+  const [index, setIndex] = useState(0);
 
-  const activity: Activity = get(id as string);
-
-  const ref = useRef<ICarouselInstance>(null);
-  const progress = useSharedValue<number>(0);
+  const inset = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
 
   const paymentView = [
-    <MinimumTrasactionSettlement
-      activity={activity}
+    <ActivitySettlement
+      strategy="minimum"
       participants={participants}
-    ></MinimumTrasactionSettlement>,
+    ></ActivitySettlement>,
+    <ActivitySettlement
+      strategy="proportional"
+      participants={participants}
+    ></ActivitySettlement>,
   ];
   return (
     <View style={styles.container}>
-      <Carousel
-        ref={ref}
-        width={width}
-        height={height - 100}
-        data={paymentView}
-        // onProgressChange={progress}
-        renderItem={({ item, index }) => (
-          <View style={{ flex: 1, margin: 10 }}>{item}</View>
-        )}
-      />
-
-      <Pagination.Basic
-        progress={progress}
-        data={paymentView}
-        dotStyle={{ backgroundColor: "rgba(0,0,0,0.2)", borderRadius: 50 }}
-        containerStyle={{ gap: 5, marginTop: 10 }}
-        // onPress={onPressPagination}
-      />
+      <View style={styles.carouselContainer}>
+        <Carousel
+          width={width}
+          height={height - inset.top - inset.bottom - headerHeight}
+          data={paymentView}
+          loop={false}
+          renderItem={({ item, index }) => (
+            <ScrollView style={styles.carouselCard} key={index}>
+              {item}
+            </ScrollView>
+          )}
+          onProgressChange={(_, progress) => setIndex(progress)}
+        />
+      </View>
+      <View style={[styles.dotGroup, { paddingBottom: 0 }]}>
+        {paymentView.map((_, i) => (
+          <View
+            key={i}
+            style={[styles.dot, index === i ? styles.dotActive : {}]}
+          ></View>
+        ))}
+      </View>
     </View>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.Background,
   },
-};
+  carouselContainer: {
+    flex: 1,
+    marginBottom: 40000,
+  },
+  carouselCard: {
+    flex: 1,
+    margin: 10,
+  },
+  dotGroup: {
+    position: "absolute",
+    bottom: 0,
+    height: 80,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.Light,
+  },
+  dot: {
+    height: 20,
+    width: 20,
+    backgroundColor: Colors.SubText,
+    borderRadius: "100%",
+    marginHorizontal: 2,
+  },
+  dotActive: {
+    backgroundColor: Colors.Primary,
+  },
+});

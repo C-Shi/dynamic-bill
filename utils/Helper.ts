@@ -58,3 +58,39 @@ export function minimumTrasactionStrategy(participants: Participant[]): any[] {
 
     return payments
 }
+
+export function proportionalOneToManyStrategy(participants: Participant[]): any[] {
+    // Setp 1: Seperate Creditors and Debtors
+
+    const creditors = participants.filter((p: Participant) => p.net > 0)
+    const debtors = participants.filter((p: Participant) => p.net < 0)
+    const totalCredit = creditors.reduce((c, p) => c + p.net, 0)
+
+    let payments: any[] = []
+
+    debtors.forEach(debtor => {
+        creditors.forEach(creditor => {
+            const proportion = creditor.net / totalCredit
+            payments.push({
+                fromId: debtor.id,
+                fromName: debtor.name,
+                toId: creditor.id,
+                toName: creditor.name,
+                amount: Math.round(proportion * -debtor.net * 100) / 100
+            })
+        })
+    })
+
+    // adjust rounding
+
+    const totalDebit = payments.reduce((d, p) => d + p.amount, 0)
+
+    const diff = totalCredit - totalDebit;
+
+    if (diff !== 0) {
+        const largest = payments.reduce((prev, curr) => curr.amount > prev.amount ? curr : prev);
+        largest.amount = Math.round((largest.amount + diff) * 100) / 100;
+    }
+
+    return payments;
+}
