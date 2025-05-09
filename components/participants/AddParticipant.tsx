@@ -25,7 +25,7 @@ export default function AddParticipant({
   close: (val: boolean) => void;
 }) {
   const { update } = useContext(ActivityContext);
-  const { set } = useContext(CurrentActivityDetailContext);
+  const { set, participants } = useContext(CurrentActivityDetailContext);
   const [participantName, setParticipantName] = useState("");
 
   async function onAddParticipant() {
@@ -33,6 +33,18 @@ export default function AddParticipant({
       alert("Please add a name");
       return;
     }
+
+    // validate uniqueness software level
+    const duplicate: Participant = participants.find(
+      (p: Participant): boolean =>
+        p.name.trim().toUpperCase() === participantName.trim().toUpperCase()
+    );
+
+    if (duplicate) {
+      alert("Duplicate participant!!");
+      return;
+    }
+
     const data = new Participant({
       name: participantName.trim(),
       activityId: activity.id,

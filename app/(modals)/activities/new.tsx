@@ -1,7 +1,6 @@
 import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
 import { useContext, useEffect, useState } from "react";
-import { ActivityType } from "@/model/ActivityType";
 import { DB } from "@/utils/DB";
 import {
   View,
@@ -50,8 +49,15 @@ export default function NewActivity() {
 
   function onAddParticipant() {
     if (!newParticipant) return;
+
+    const capArr = participantList.map((p: string) => p.toUpperCase());
+    if (capArr.includes(newParticipant.trim().toUpperCase())) {
+      alert("Duplicate Participant");
+      setNewParticipant("");
+      return;
+    }
     setParticipantList((prev) => {
-      return [...prev, newParticipant];
+      return [...prev, newParticipant.trim()];
     });
     setNewParticipant("");
   }
