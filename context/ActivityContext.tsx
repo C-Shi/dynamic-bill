@@ -2,7 +2,6 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Activity } from "@/model/Activity";
 import { DB } from "@/utils/DB";
 import { Participant } from "@/model/Participant";
-import { Expense } from "@/model/Expense";
 
 type ActivityContextType = {
   activities: Activity[];
@@ -10,6 +9,7 @@ type ActivityContextType = {
   remove: (activity: Activity) => Promise<any>;
   update: (id: string) => Promise<void>;
   get: (id: string) => Activity;
+  modify: (activity: Activity) => Promise<Activity>;
 };
 
 const ActivityContext = createContext<ActivityContextType>(
@@ -109,6 +109,15 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     return activities.find((a: Activity) => a.id === id);
   };
 
+  const modify = async (activity: Activity): Promise<Activity> => {
+    // update context
+    dispatch({ type: "UPDATE_ACTIVITY", payload: activity });
+    // update database
+    await DB.update("activities", activity.id, activity.toEntity());
+    return activity;
+  };
+
+  // get update with with database data
   const update = async (id: string): Promise<void> => {
     fetchActivityDB(id);
   };
@@ -119,6 +128,7 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
     remove,
     get,
     update,
+    modify,
   };
 
   return (

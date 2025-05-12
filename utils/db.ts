@@ -11,6 +11,7 @@ interface IDatabaseAdapter {
     first(query: string, params: any[]): Promise<any>;
     get(table: string, where?: { [key: string]: [string, string] }): Promise<any[]>;
     insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<any>;
+    update(table: string, id: string, data: { [key: string]: string | number }): Promise<any>;
     delete(table: string, id: string): Promise<void>;
 }
 
@@ -102,6 +103,19 @@ export class DB {
         console.log(`Table ${table} - DB.Insert`);
         await DB.adapter.insert(table, data);
         DB.notify(table, 'insert', data); // Notify listeners about the insert operation
+    }
+
+    /**
+     * Updates a record in a specified table by its ID.
+     * 
+     * @param table - The table from which to update the record.
+     * @param id - The ID of the record to update.
+     * @param data - The data to update.
+     */
+    public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<void> {
+        console.log(`Table ${table} - DB.Update`);
+        await DB.adapter.update(table, id, data);
+        DB.notify(table, 'update', data); // Notify listeners about the update operation
     }
 
     /**

@@ -217,6 +217,13 @@ export class SQLiteAdapter {
         return await this.query(query, values);
     }
 
+    public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<any> {
+        const columns = Object.keys(data);
+        const placeholders = columns.map((col) => `${col} = ?`).join(", ");
+        const query = `UPDATE ${table} SET ${placeholders} WHERE id = ?`;
+        const values = columns.map((col) => data[col]);
+        return await this.query(query, [...values, id]);
+    }
 
     public static async delete(table: string, id: string): Promise<any> {
         const query = `DELETE FROM ${table} WHERE id = ?`;

@@ -74,10 +74,6 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
 
   const buttonGroup = [
     {
-      icon: <FontAwesome name="edit" size={24} color={Colors.Background} />,
-      onPress: () => console.log("Edit Activity"),
-    },
-    {
       icon: (
         <Ionicons
           name="person-add-outline"
