@@ -1,50 +1,58 @@
-# Welcome to your Expo app 👋
+# DynamicBill
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern expense tracking and bill splitting app built with React Native and Expo. DynamicBill helps groups manage shared expenses, track contributions, and settle debts efficiently.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Activity Management**: Create and manage different activities/events with multiple participants
+- **Expense Tracking**: Add and track expenses for each activity
+- **Smart Settlement**: Two settlement strategies available:
+  - Minimum Transaction: Settles debts with the fewest possible transactions
+  - Proportional One-To-Many: Distributes debts proportionally among participants
+- **Visual Analytics**:
+  - Contribution charts showing who paid what
+  - Utilization tracking for budgeted activities
+  - Settlement visualization
+- **Budget Management**: Set and track budgets for activities
+- **Real-time Updates**: Automatic calculations of balances and settlements
+
+## Tech Stack
+
+- React Native with Expo
+- TypeScript
+- SQLite for local data storage
+- React Native Gifted Charts for visualizations
+- Expo Router for navigation
+- React Native Paper for UI components
+
+## Getting Started
+
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Start the development server:
 
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on your preferred platform:
+   - iOS Simulator
+   - Android Emulator
+   - Expo Go app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Development
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+The app uses a SQLite database for local storage with the following main tables:
 
-## Get a fresh project
+- activities
+- participants
+- expenses
+- participant_expenses
 
-When you're ready, run:
+## Contributing
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Feel free to submit issues and enhancement requests!

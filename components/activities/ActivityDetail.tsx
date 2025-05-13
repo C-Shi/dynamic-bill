@@ -131,7 +131,10 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
           </View>
           {/* Chart Section */}
           {participants.length > 0 && (
-            <ActivityChart dataset={participants}></ActivityChart>
+            <ActivityChart
+              dataset={participants}
+              activity={activity}
+            ></ActivityChart>
           )}
 
           {/* Toggle View */}

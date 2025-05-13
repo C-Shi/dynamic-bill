@@ -2,15 +2,21 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
 import ActivityContributionChart from "./ActivityContributionChart";
 import ActivityPayChart from "./ActivityPayChart";
-
+import ActivityUtilizationChart from "./ActivityUtilizationChart";
 import React, { useState } from "react";
 import { Participant } from "@/model/Participant";
 import { MaterialIcons } from "@expo/vector-icons";
-
-export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
-  const [chartType, setChartType] = useState<"contribution" | "settlement">(
-    "contribution"
-  );
+import { Activity } from "@/model/Activity";
+export default function ActivityChart({
+  dataset,
+  activity,
+}: {
+  dataset: Participant[];
+  activity: Activity;
+}) {
+  const [chartType, setChartType] = useState<
+    "contribution" | "settlement" | "utilization"
+  >("contribution");
 
   // check if there is expenses, if not no need to show any graph
   const ttl = dataset.reduce((prev: number, p: Participant): number => {
@@ -35,18 +41,40 @@ export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
 
   const chartColorSet = ColorSet.newSet(dataset.length);
 
-  const chartToDisplay =
-    chartType === "contribution" ? (
-      <ActivityContributionChart
-        dataset={dataset}
-        chartColorSet={chartColorSet}
-      ></ActivityContributionChart>
-    ) : (
+  let chartToDisplay = (
+    <ActivityContributionChart
+      dataset={dataset}
+      chartColorSet={chartColorSet}
+    ></ActivityContributionChart>
+  );
+
+  if (chartType === "settlement") {
+    chartToDisplay = (
       <ActivityPayChart
         dataset={dataset}
         chartColorSet={chartColorSet}
       ></ActivityPayChart>
     );
+  }
+
+  if (chartType === "utilization") {
+    const utilizationData = [
+      {
+        value: activity.totals,
+        color:
+          activity.budget! >= activity.totals ? Colors.Primary : Colors.Danger,
+      },
+      {
+        value: activity.budget! - activity.totals,
+        color: Colors.Light,
+      },
+    ];
+    chartToDisplay = (
+      <ActivityUtilizationChart
+        dataset={utilizationData}
+      ></ActivityUtilizationChart>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -74,6 +102,31 @@ export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
             Contribution
           </Text>
         </TouchableOpacity>
+        {!!activity.budget && (
+          <TouchableOpacity
+            onPress={() => setChartType("utilization")}
+            style={[
+              chartType === "utilization"
+                ? styles.activeButton
+                : styles.inactiveButton,
+              styles.middleButton,
+            ]}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                {
+                  color:
+                    chartType === "utilization"
+                      ? Colors.Background
+                      : Colors.Main,
+                },
+              ]}
+            >
+              Utilization
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           onPress={() => setChartType("settlement")}
           style={[
@@ -130,18 +183,23 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
     padding: 8,
-    width: 150,
+    width: 110,
+  },
+  middleButton: {
+    padding: 8,
+    width: 110,
   },
   rightButton: {
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
     padding: 8,
-    width: 150,
+    width: 110,
   },
   buttonText: {
     color: Colors.Main,
     fontWeight: "600",
     textAlign: "center",
+    fontSize: 13,
   },
   icon: {
     marginRight: 10,
