@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import Colors from "@/constant/Color";
 
-export default function ActivityPieChart({
+export default function ActivityContributionChart({
   dataset,
   chartColorSet,
 }: {

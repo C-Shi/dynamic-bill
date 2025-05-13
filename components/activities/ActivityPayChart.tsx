@@ -8,7 +8,7 @@ const MAX_BAR_WIDTH = 40; // Maximum width for aesthetics
 const BAR_GAP = 10; // Gap between bars
 const screenWidth = Dimensions.get("window").width;
 
-export default function ActivityBarChart({
+export default function ActivityPayChart({
   dataset,
   chartColorSet,
 }: {

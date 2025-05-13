@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
-import ActivityPieChart from "./ActivityPieChart";
-import ActivityBarChart from "./ActivityBarChart";
+import ActivityContributionChart from "./ActivityContributionChart";
+import ActivityPayChart from "./ActivityPayChart";
 
 import React, { useState } from "react";
 import { Participant } from "@/model/Participant";
@@ -37,15 +37,15 @@ export default function ActivityChart({ dataset }: { dataset: Participant[] }) {
 
   const chartToDisplay =
     chartType === "contribution" ? (
-      <ActivityPieChart
+      <ActivityContributionChart
         dataset={dataset}
         chartColorSet={chartColorSet}
-      ></ActivityPieChart>
+      ></ActivityContributionChart>
     ) : (
-      <ActivityBarChart
+      <ActivityPayChart
         dataset={dataset}
         chartColorSet={chartColorSet}
-      ></ActivityBarChart>
+      ></ActivityPayChart>
     );
 
   return (
