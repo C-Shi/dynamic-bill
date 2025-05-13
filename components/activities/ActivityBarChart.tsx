@@ -1,21 +1,27 @@
-import { Participant } from "@/model/Participant";
-import { View, Text, StyleSheet } from "react-native";
+import { Activity } from "@/model/Activity";
+import { View, Text, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import Colors from "@/constant/Color";
-import { Dimensions } from "react-native";
 
+const MIN_BAR_WIDTH = 20; // Minimum width for readability
+const MAX_BAR_WIDTH = 40; // Maximum width for aesthetics
+const BAR_GAP = 10; // Gap between bars
 const screenWidth = Dimensions.get("window").width;
-const MIN_BAR_WIDTH = 20;
-const MAX_BAR_WIDTH = 60;
-const BAR_GAP = 40;
 
 export default function ActivityBarChart({
   dataset,
   chartColorSet,
 }: {
-  dataset: Participant[];
+  dataset: any[];
   chartColorSet: string[];
 }) {
+  const currencyHelper = (val: number) => {
+    return Intl.NumberFormat("en-CA", {
+      style: "currency",
+      currency: "CAD",
+    }).format(val);
+  };
+
   const barData = dataset.flatMap((p) => {
     return [
       {
@@ -45,19 +51,22 @@ export default function ActivityBarChart({
     return rounded;
   })();
 
-  const { chartWidth, barWitdh } = (function (): any {
+  const { chartWidth, barWidth } = (function (): any {
     const dataLength = barData.length;
-    const barWidth = Math.min(
+    const calculatedBarWidth = Math.min(
       MAX_BAR_WIDTH,
       Math.max(MIN_BAR_WIDTH, (screenWidth - 40) / dataLength - BAR_GAP)
     );
 
-    const chartWidth = (barWidth + BAR_GAP) * dataLength;
-    return { chartWidth, barWidth };
+    const calculatedChartWidth = (calculatedBarWidth + BAR_GAP) * dataLength;
+    return {
+      chartWidth: Math.max(calculatedChartWidth, screenWidth - 40),
+      barWidth: calculatedBarWidth,
+    };
   })();
 
   return (
-    <View>
+    <View style={styles.mainContainer}>
       <View style={styles.legendContainer}>
         <View style={styles.legend}>
           <View
@@ -73,39 +82,67 @@ export default function ActivityBarChart({
           <Text style={{ color: Colors.Main }}>Owed</Text>
         </View>
       </View>
-      <BarChart
-        data={barData}
-        barWidth={barWitdh}
-        width={chartWidth}
-        spacing={BAR_GAP}
-        hideRules
-        xAxisThickness={0}
-        yAxisThickness={0}
-        yAxisTextStyle={{ color: Colors.Main }}
-        noOfSections={4}
-        maxValue={barMaxValue}
-        isAnimated
-      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={true}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        <View style={[styles.container, { width: chartWidth }]}>
+          <BarChart
+            data={barData}
+            width={chartWidth}
+            height={200}
+            barWidth={barWidth}
+            spacing={BAR_GAP}
+            hideRules
+            showYAxisIndices
+            xAxisLabelTextStyle={{ color: Colors.Main, fontSize: 10 }}
+            yAxisTextStyle={{
+              color: Colors.Main,
+              fontSize: 10,
+              position: "relative",
+              left: -15,
+              transform: [{ rotate: "-20deg" }],
+            }}
+            yAxisThickness={0.5}
+            yAxisColor={Colors.Main}
+            noOfSections={4}
+            maxValue={barMaxValue}
+            formatYLabel={(value) => currencyHelper(parseFloat(value))}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    marginTop: 10,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+  },
+  container: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 15,
+  },
   legendContainer: {
     flexDirection: "row",
-    marginVertical: 10,
     justifyContent: "center",
-    alignSelf: "center",
+    alignItems: "center",
+    marginBottom: 10,
   },
   legend: {
     flexDirection: "row",
     alignItems: "center",
-    width: 150,
+    marginHorizontal: 10,
   },
   legendDot: {
     height: 10,
     width: 10,
     borderRadius: 5,
-    marginRight: 10,
+    marginRight: 5,
   },
 });

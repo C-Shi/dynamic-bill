@@ -28,7 +28,7 @@ export default function ActivityPieChart({
     return (
       <View key={Math.random()} style={styles.legend}>
         <View style={[styles.legendDot, { backgroundColor: c.color }]} />
-        <Text style={{ color: Colors.Main }}>
+        <Text style={[styles.legendText, { color: Colors.Main }]}>
           {c.name}: {currencyHelper(c.value)}
         </Text>
       </View>
@@ -55,17 +55,26 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    paddingHorizontal: 10,
     marginTop: 15,
+    width: "100%",
   },
   legend: {
     flexDirection: "row",
     alignItems: "center",
-    width: 150,
+    width: "48%",
+    marginBottom: 8,
   },
   legendDot: {
     height: 10,
     width: 10,
     borderRadius: 5,
     marginRight: 10,
+  },
+  legendText: {
+    flex: 1,
   },
 });
