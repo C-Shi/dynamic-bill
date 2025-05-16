@@ -1,5 +1,17 @@
 import { View, Text, StyleSheet } from "react-native";
 
+/**
+ * Avatar Component
+ * A circular avatar component that displays the first letter of a name.
+ * Features:
+ * - Circular shape with white border
+ * - Displays first letter of name in uppercase
+ * - Customizable size and styling
+ * - Consistent purple background color
+ *
+ * @param name - The name to extract the initial from
+ * @param style - Optional custom styles to apply to the avatar
+ */
 export default function Avatar({ name, style }: { name: string; style?: any }) {
   const initial = name.trim().charAt(0).toUpperCase();
 

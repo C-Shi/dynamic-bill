@@ -3,12 +3,31 @@ import Colors from "@/constant/Color";
 import { ReactElement } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
+/**
+ * Type definitions for the DataTable component
+ * @typedef {Object} obj - Generic object type for style properties
+ * @typedef {Object} tableData - Structure for table data
+ * @property {string[]} columns - Array of column headers
+ * @property {Array<{values: string[], styles?: obj}>} cells - Array of row data with optional styles
+ */
 type obj = { [key: string]: any };
 type tableData = {
   columns: string[];
   cells: { values: string[]; styles?: obj }[];
 };
 
+/**
+ * DataTable Component
+ * A reusable table component for displaying structured data.
+ * Features:
+ * - Customizable column headers
+ * - Flexible row data with optional cell styling
+ * - Empty state handling with icon
+ * - Consistent styling with shadow and rounded corners
+ *
+ * @param data - Table data including columns and cell values
+ * @param headerStyle - Optional custom styles for the header row
+ */
 export default function DataTable({
   data,
   headerStyle,
@@ -16,6 +35,7 @@ export default function DataTable({
   data: tableData;
   headerStyle?: obj;
 }) {
+  // Map cell data to row components with optional styling
   let rows: any = data.cells.map((cell: any, i: number) => {
     return (
       <View key={i} style={styles.row}>
@@ -28,6 +48,7 @@ export default function DataTable({
     );
   });
 
+  // Display empty state when no data is available
   if (data.cells.length === 0) {
     rows = (
       <View

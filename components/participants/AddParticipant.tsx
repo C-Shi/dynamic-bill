@@ -15,6 +15,19 @@ import { ActivityContext } from "@/context/ActivityContext";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { DB } from "@/utils/DB";
 
+/**
+ * AddParticipant Component
+ * A modal dialog for adding new participants to an activity.
+ * Features:
+ * - Input field for participant name
+ * - Validation for empty names and duplicates
+ * - Integration with activity context for updates
+ * - Database integration for participant storage
+ *
+ * @param activity - The activity to add the participant to
+ * @param open - Boolean controlling modal visibility
+ * @param close - Function to close the modal
+ */
 export default function AddParticipant({
   activity,
   open,
@@ -28,6 +41,7 @@ export default function AddParticipant({
   const { set, participants } = useContext(CurrentActivityDetailContext);
   const [participantName, setParticipantName] = useState("");
 
+  // Validate input and update database with new participant
   async function onAddParticipant() {
     if (!participantName) {
       alert("Please add a name");
@@ -35,7 +49,7 @@ export default function AddParticipant({
     }
 
     // validate uniqueness software level
-    const duplicate: Participant = participants.find(
+    const duplicate = participants.find(
       (p: Participant): boolean =>
         p.name.trim().toUpperCase() === participantName.trim().toUpperCase()
     );
@@ -68,9 +82,13 @@ export default function AddParticipant({
       animationType="fade"
       onRequestClose={() => close(false)}
     >
+      {/* Backdrop with press to close */}
       <Pressable style={styles.backdrop} onPress={() => close(false)}>
         <View style={styles.container}>
+          {/* Modal Title */}
           <Text style={styles.title}>Add Participant</Text>
+
+          {/* Participant Name Input */}
           <TextInput
             value={participantName}
             onChangeText={setParticipantName}
@@ -78,6 +96,8 @@ export default function AddParticipant({
             style={styles.input}
             placeholderTextColor="#888"
           />
+
+          {/* Add Participant Button */}
           <TouchableOpacity onPress={onAddParticipant} style={styles.button}>
             <Text style={styles.buttonText}>Add Participant</Text>
           </TouchableOpacity>
