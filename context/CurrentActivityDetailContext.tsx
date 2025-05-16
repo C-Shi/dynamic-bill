@@ -3,21 +3,75 @@ import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
 import { DB } from "@/utils/DB";
 
-const CurrentActivityDetailContext = createContext({} as any);
+/**
+ * Type definition for the add operations in the context
+ */
+type AddOperations = {
+  /** Add multiple participants at once */
+  participants: (participants: Participant[]) => void;
+
+  /** Add a single participant */
+  participant: (participant: Participant) => void;
+
+  /** Add multiple expenses at once */
+  expenses: (expenses: Expense[]) => void;
+
+  /** Add a single expense */
+  expense: (expense: Expense) => void;
+};
+
+/**
+ * Type definition for the Current Activity Detail Context
+ * Provides methods and state for managing the currently selected activity's details
+ */
+type CurrentActivityDetailContextType = {
+  /** ID of the currently selected activity */
+  activityId: string | undefined;
+
+  /** List of participants in the current activity */
+  participants: Participant[];
+
+  /** List of expenses in the current activity */
+  expenses: Expense[];
+
+  /** Operations for adding participants and expenses */
+  add: AddOperations;
+
+  /** Set the current activity and load its details */
+  set: (id: string) => Promise<void>;
+};
+
+/**
+ * Creates the Current Activity Detail Context with default values
+ */
+const CurrentActivityDetailContext =
+  createContext<CurrentActivityDetailContextType>(
+    {} as CurrentActivityDetailContextType
+  );
 
 export { CurrentActivityDetailContext };
 
+/**
+ * Provider component for Current Activity Detail Context
+ * Manages the state and operations for the currently selected activity's details
+ */
 export function CurrentActivityDetailContextProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [participants, setParticipants] = useState([] as Participant[]);
-  const [expenses, setExpenses] = useState([] as Expense[]);
+  const [activityId, setActivityId] = useState<string | undefined>(undefined);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const set = async (id: string) => {
-    setParticipants([] as Participant[]);
-    setExpenses([] as Expense[]);
+  /**
+   * Sets the current activity and loads its details
+   * @param id ID of the activity to load
+   */
+  const set = async (id: string): Promise<void> => {
+    setActivityId(id);
+    setParticipants([]);
+    setExpenses([]);
 
     try {
       const [participantsResult, expensesResult] = await Promise.allSettled([
@@ -25,50 +79,57 @@ export function CurrentActivityDetailContextProvider({
         DB.get("expenses", { activity_id: ["=", id] }),
       ]);
 
-      // Handling participants
+      // Handle participants data
       if (participantsResult.status === "fulfilled") {
-        const ps = participantsResult.value.map(
+        const participants = participantsResult.value.map(
           (row: any) => new Participant(row)
         );
-        add.participants(ps);
+        add.participants(participants);
       } else {
         console.error("Error loading participants:", participantsResult.reason);
+        throw new Error("Failed to load participants");
       }
 
-      // Handling expenses
+      // Handle expenses data
       if (expensesResult.status === "fulfilled") {
-        const es = expensesResult.value.map((row: any) => new Expense(row));
-        add.expenses(es);
+        const expenses = expensesResult.value.map(
+          (row: any) => new Expense(row)
+        );
+        add.expenses(expenses);
       } else {
         console.error("Error loading expenses:", expensesResult.reason);
+        throw new Error("Failed to load expenses");
       }
     } catch (error) {
       console.error("Error loading activity data:", error);
+      throw error;
     }
   };
 
-  const add = {
-    participants: (participants: Participant[]) =>
-      setParticipants((prev: Participant[]) => {
-        return [...prev, ...participants];
-      }),
-    participant: (participant: Participant) => {
-      setParticipants((prev: Participant[]) => {
-        return [...prev, participant];
-      });
-    },
-    expenses: (expenses: Expense[]) =>
-      setExpenses((prev: Expense[]) => {
-        return [...prev, ...expenses];
-      }),
-    expense: (expense: Expense) => {
-      setExpenses((prev: Expense[]) => {
-        return [...prev, expense];
-      });
-    },
+  /**
+   * Operations for adding participants and expenses
+   */
+  const add: AddOperations = {
+    participants: (newParticipants: Participant[]) =>
+      setParticipants((prev: Participant[]) => [...prev, ...newParticipants]),
+
+    participant: (participant: Participant) =>
+      setParticipants((prev: Participant[]) => [...prev, participant]),
+
+    expenses: (newExpenses: Expense[]) =>
+      setExpenses((prev: Expense[]) => [...prev, ...newExpenses]),
+
+    expense: (expense: Expense) =>
+      setExpenses((prev: Expense[]) => [...prev, expense]),
   };
 
-  const value = { add, participants, expenses, set };
+  const value: CurrentActivityDetailContextType = {
+    activityId,
+    participants,
+    expenses,
+    add,
+    set,
+  };
 
   return (
     <CurrentActivityDetailContext.Provider value={value}>

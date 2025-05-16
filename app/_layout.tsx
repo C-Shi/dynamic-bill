@@ -6,6 +6,18 @@ import Colors from "@/constant/Color";
 import { CurrentActivityDetailContextProvider } from "@/context/CurrentActivityDetailContext";
 import { DB } from "@/utils/DB";
 
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from "react-native-reanimated";
+
+if (__DEV__) {
+  configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Disable strict mode
+  });
+}
+
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -94,20 +106,26 @@ export default function RootLayout() {
   return (
     <ActivityContextProvider>
       <CurrentActivityDetailContextProvider>
-        <Stack>
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: Colors.Primary,
+            },
+            headerTintColor: Colors.Background,
+            headerBackButtonDisplayMode: "minimal",
+            contentStyle: {
+              backgroundColor: Colors.Background,
+            },
+          }}
+        >
           <Stack.Screen
             name="(tabs)"
             options={{ headerShown: false }}
           ></Stack.Screen>
           <Stack.Screen
-            name="activities/[id]/index"
+            name="activities/[id]/settlement"
             options={{
-              headerStyle: {
-                backgroundColor: Colors.Primary,
-              },
-              headerTintColor: Colors.Background,
-              headerBackButtonDisplayMode: "minimal",
-              headerBackTitle: "Activities",
+              headerTitle: "Expense Settlement",
             }}
           ></Stack.Screen>
           <Stack.Screen
@@ -117,12 +135,6 @@ export default function RootLayout() {
               title: "Add Activity",
               headerTitleAlign: "left",
               headerTintColor: Colors.Card,
-              headerStyle: {
-                backgroundColor: Colors.Primary,
-              },
-              contentStyle: {
-                backgroundColor: Colors.Background,
-              },
               // to align title right in iOS
               headerTitle: (props) => (
                 <View
@@ -146,13 +158,6 @@ export default function RootLayout() {
             options={{
               presentation: "modal",
               title: "Add Expense",
-              headerTintColor: Colors.Card,
-              headerStyle: {
-                backgroundColor: Colors.Primary,
-              },
-              contentStyle: {
-                backgroundColor: Colors.Background,
-              },
             }}
           ></Stack.Screen>
         </Stack>

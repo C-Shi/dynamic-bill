@@ -7,14 +7,34 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+// Constants for button sizing and spacing
 const FAB_SIZE = 60;
 const BUTTON_SPACING = 70;
 
+/**
+ * Type definition for action button properties
+ */
 type ActionButtonProp = {
   icon: React.ReactElement;
   onPress: () => void;
 };
 
+/**
+ * ActionButton Component
+ * An animated button that appears when the FAB is opened.
+ * Features:
+ * - Animated entrance/exit
+ * - Customizable direction (up/down/left/right)
+ * - Customizable background color
+ * - Smooth opacity transitions
+ *
+ * @param icon - Icon element to display
+ * @param onPress - Function to call when pressed
+ * @param index - Position index for animation
+ * @param isOpen - Whether the FAB is open
+ * @param backgroundColor - Optional custom background color
+ * @param direction - Direction for button to animate in
+ */
 const ActionButton = ({
   icon,
   onPress,
@@ -74,6 +94,22 @@ const ActionButton = ({
   );
 };
 
+/**
+ * FABGroup Component
+ * A floating action button group with expandable action buttons.
+ * Features:
+ * - Main FAB that toggles action buttons
+ * - Animated action buttons that appear/disappear
+ * - Customizable colors and shadow
+ * - Configurable expansion direction
+ * - Smooth animations using react-native-reanimated
+ *
+ * @param buttons - Array of action buttons with icons and press handlers
+ * @param backgroundColor - Optional custom background color
+ * @param color - Optional custom icon color
+ * @param shadow - Whether to show shadow on the main FAB
+ * @param direction - Direction for action buttons to expand in
+ */
 export default function FABGroup({
   buttons,
   backgroundColor,

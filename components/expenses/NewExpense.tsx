@@ -1,7 +1,7 @@
 import { ActivityContext } from "@/context/ActivityContext";
 import { Expense } from "@/model/Expense";
 import { useRouter } from "expo-router";
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   ScrollView,
   View,
@@ -24,6 +24,19 @@ import { DB } from "@/utils/DB";
 import { ParticipantExpense } from "@/model/ParticipantExpense";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
+/**
+ * NewExpense Component
+ * A form for adding new expenses to an activity.
+ * Features:
+ * - Expense description and amount input
+ * - Payer selection via dropdown menu
+ * - Participant selection for expense sharing
+ * - Validation for required fields
+ * - Database integration for expense storage
+ *
+ * @param activity - The activity to add the expense to
+ * @param participants - List of participants in the activity
+ */
 export default function NewExpense({
   activity,
   participants,
@@ -35,6 +48,7 @@ export default function NewExpense({
   const { set } = useContext(CurrentActivityDetailContext);
   const { update } = useContext(ActivityContext);
 
+  // State for new expense details
   const [newExpense, setNewExpense] = useState({
     description: "",
     amount: "",
@@ -42,25 +56,31 @@ export default function NewExpense({
     paidBy: undefined,
   });
 
+  // State for tracking which participants the expense is for
   const [newExpenseFor, setNewExpenseFor] = useState(
     participants.map((p) => p.id)
   );
 
+  // State for controlling the payer selection menu
   const [menuVisible, setMenuVisible] = useState(false);
 
+  // Update the payer of the expense
   function onPaidByChange(v: any) {
     setNewExpense({ ...newExpense, paidBy: v.id });
     setMenuVisible(false);
   }
 
+  // Update expense description
   function onDescriptionChange(description: string) {
     setNewExpense({ ...newExpense, description });
   }
 
+  // Update expense amount
   function onAmountChange(amount: string) {
     setNewExpense({ ...newExpense, amount });
   }
 
+  // Toggle participant selection for expense sharing
   function onPaidForChange(value: string) {
     if (newExpenseFor.includes(value)) {
       setNewExpenseFor((prev) => prev.filter((v) => v !== value));
@@ -69,10 +89,12 @@ export default function NewExpense({
     }
   }
 
+  // Select all participants for expense sharing
   function onPaidForEveryone() {
     setNewExpenseFor(participants.map((p) => p.id));
   }
 
+  // Validate all required fields are filled
   function validated() {
     if (!newExpense.description) {
       alert("Expense need description");
@@ -97,6 +119,7 @@ export default function NewExpense({
     return true;
   }
 
+  // Submit the new expense to the database
   async function onSubmit() {
     if (!validated()) {
       return;
@@ -117,31 +140,6 @@ export default function NewExpense({
     try {
       await DB.insert("expenses", expData);
       await DB.insert("participant_expenses", peData);
-      // await DB.query(
-      //   `
-      //     UPDATE participants
-      //     SET
-      //     total_paid = (
-      //         SELECT COALESCE(SUM(e.amount), 0)
-      //         FROM expenses e
-      //         WHERE e.paid_by = participants.id
-      //     ),
-      //     total_owed = (
-      //         SELECT COALESCE(SUM(
-      //         e.amount / (
-      //             SELECT COUNT(*)
-      //             FROM participant_expenses pe2
-      //             WHERE pe2.expense_id = e.id
-      //         )
-      //         ), 0)
-      //         FROM expenses e
-      //         JOIN participant_expenses pe ON pe.expense_id = e.id
-      //         WHERE pe.participant_id = participants.id
-      //     )
-      //     WHERE activity_id = ?;
-      //     `,
-      //   [activity.id]
-      // );
     } catch (e) {
       alert("Add Expense Failed");
     } finally {
@@ -154,6 +152,7 @@ export default function NewExpense({
   return (
     <PaperProvider>
       <ScrollView style={styles.container}>
+        {/* Expense Description Input */}
         <Text style={styles.label}>Description</Text>
         <TextInput
           value={newExpense.description}
@@ -162,6 +161,7 @@ export default function NewExpense({
           style={styles.input}
         />
 
+        {/* Expense Amount Input */}
         <Text style={styles.label}>Amount</Text>
         <TextInput
           value={newExpense.amount}
@@ -171,6 +171,7 @@ export default function NewExpense({
           style={styles.input}
         />
 
+        {/* Payer Selection Dropdown */}
         <Text style={styles.label}>Paid By</Text>
         <Menu
           visible={menuVisible}
@@ -197,6 +198,8 @@ export default function NewExpense({
             />
           ))}
         </Menu>
+
+        {/* Participant Selection for Expense Sharing */}
         <Text style={styles.label}>Paid For</Text>
         <View style={{ marginBottom: 24 }}>
           {newExpenseFor.length < participants.length && (
@@ -228,6 +231,7 @@ export default function NewExpense({
           ))}
         </View>
 
+        {/* Submit Button */}
         <Button
           mode="contained"
           onPress={onSubmit}
@@ -236,6 +240,13 @@ export default function NewExpense({
         >
           Add Expense
         </Button>
+
+        {/* Warning about participant modification */}
+        <View style={{ marginVertical: 16 }}>
+          <Text style={{ color: Colors.Coffee, fontSize: 14 }}>
+            ⚠️ You cannot add/remove participants after you add expenses.
+          </Text>
+        </View>
       </ScrollView>
     </PaperProvider>
   );

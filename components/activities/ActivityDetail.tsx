@@ -19,21 +19,37 @@ import { Participant } from "@/model/Participant";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { dollar } from "@/utils/Helper";
 
+/**
+ * ActivityDetail Component
+ * Displays detailed information about an activity, including:
+ * - Summary of total expenses and remaining budget
+ * - Visual chart of participant contributions
+ * - Toggleable view between participants and expenses
+ * - Floating action buttons for adding participants and expenses
+ * - Settlement button when expenses exist
+ *
+ * @param activity - The activity object to display details for
+ */
 export default function ActivityDetail({ activity }: { activity: Activity }) {
   const router = useRouter();
+  // State for toggling between participants and expenses view
   const [viewType, setViewType] = useState<"participants" | "expenses">(
     "participants"
   );
+  // Context for managing activity details
   const { participants, expenses, set } = useContext(
     CurrentActivityDetailContext
   );
 
+  // State for controlling the participant modal
   const [participantModal, setParticipantModal] = useState(false);
 
+  // Set the current activity ID in context on mount
   useEffect(() => {
     set(activity.id);
   }, []);
 
+  // Prepare participant data for the DataTable
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],
     cells: participants.map((p: any) => {
@@ -54,6 +70,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     }),
   };
 
+  // Prepare expense data for the DataTable
   const expenseData = {
     columns: ["Description", "Amount", "Paid By"],
     cells: expenses.map((e: any) => {
@@ -68,15 +85,13 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     }),
   };
 
+  // Check if activity is over budget
   const isOverBudget = activity.budget
     ? activity.totals > activity.budget
     : false;
 
+  // Define floating action buttons
   const buttonGroup = [
-    {
-      icon: <FontAwesome name="edit" size={24} color={Colors.Background} />,
-      onPress: () => console.log("Edit Activity"),
-    },
     {
       icon: (
         <Ionicons
@@ -85,7 +100,15 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
           color={Colors.Background}
         />
       ),
-      onPress: () => setParticipantModal(true),
+      onPress: () => {
+        if (expenses.length > 0) {
+          alert(
+            "Cannot add participant for activities with expenses. This limitation will be removed on v2"
+          );
+        } else {
+          setParticipantModal(true);
+        }
+      },
     },
     {
       icon: <FontAwesome name="dollar" size={24} color={Colors.Background} />,
@@ -98,7 +121,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <ScrollView style={styles.scrollViewContainer}>
-          {/* Summary Section */}
+          {/* Summary Section - Shows total expenses and remaining budget */}
           <View style={styles.summarySection}>
             <View style={styles.summarySubSection}>
               <Text style={[styles.textCenter, styles.summaryHeader]}>
@@ -125,12 +148,16 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
               </Text>
             </View>
           </View>
-          {/* Chart Section */}
+
+          {/* Chart Section - Visual representation of participant contributions */}
           {participants.length > 0 && (
-            <ActivityChart dataset={participants}></ActivityChart>
+            <ActivityChart
+              dataset={participants}
+              activity={activity}
+            ></ActivityChart>
           )}
 
-          {/* Toggle View */}
+          {/* Toggle View - Switch between participants and expenses */}
           <View style={styles.viewToggle}>
             <TouchableOpacity
               onPress={() => setViewType("participants")}
@@ -140,7 +167,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
                   : styles.inactiveView
               }
             >
-              <Text style={styles.buttonText}>BY PARTICIPANTS</Text>
+              <Text style={styles.buttonText}>PARTICIPANTS</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setViewType("expenses")}
@@ -154,7 +181,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
             </TouchableOpacity>
           </View>
 
-          {/* Main Section */}
+          {/* Main Section - Display either participants or expenses table */}
           {viewType === "participants" ? (
             <DataTable data={participantData}></DataTable>
           ) : (
@@ -162,16 +189,33 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
           )}
         </ScrollView>
       </View>
+
+      {/* Floating Action Buttons */}
       <View style={styles.fabContainer}>
+        {/* Settlement Button - Only shown when expenses exist */}
+        {expenses.length > 0 && (
+          <TouchableOpacity
+            style={styles.settleBtn}
+            onPress={() => router.push(`/activities/${activity.id}/settlement`)}
+          >
+            <Ionicons
+              name="receipt-outline"
+              size={32}
+              color={Colors.Background}
+            />
+          </TouchableOpacity>
+        )}
+        {/* Main FAB Group - Add participant and expense buttons */}
         <FloatingButtonGroup
           buttons={buttonGroup}
           backgroundColor={Colors.Primary}
           color={Colors.Background}
           shadow
-          direction="left"
+          direction="up"
         ></FloatingButtonGroup>
       </View>
 
+      {/* Add Participant Modal */}
       <AddParticipant
         activity={activity}
         open={participantModal}
@@ -275,6 +319,22 @@ const styles = StyleSheet.create({
     bottom: 40,
     right: 30,
     left: 0,
-    alignItems: "flex-end",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  settleBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 60 / 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+    backgroundColor: Colors.Secondary,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6, // for Android
+    marginRight: 10,
   },
 });

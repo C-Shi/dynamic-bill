@@ -1,50 +1,123 @@
-# Welcome to your Expo app 👋
+# DynamicBill
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> A modern expense tracking and bill splitting app that makes group finances simple and transparent.
 
-## Get started
+[![Version](https://img.shields.io/badge/version-1.0.0.beta.1-blue.svg)](https://semver.org)
+[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg)](https://expo.dev)
 
-1. Install dependencies
+## Overview
+
+DynamicBill is a React Native application that helps groups manage shared expenses, track contributions, and settle debts efficiently. Whether you're planning a trip, managing household expenses, or organizing an event, DynamicBill makes it easy to keep track of who paid what and who owes whom.
+
+## Features
+
+### Core Features
+
+- 🎯 **Activity Management**: Create and manage different activities/events with multiple participants
+- 💰 **Expense Tracking**: Add and track expenses for each activity
+- 🤝 **Smart Settlement**: Two settlement strategies available:
+  - Minimum Transaction: Settles debts with the fewest possible transactions
+  - Proportional One-To-Many: Distributes debts proportionally among participants
+- 📊 **Visual Analytics**:
+  - Contribution charts showing who paid what
+  - Utilization tracking for budgeted activities
+  - Settlement visualization
+- 💵 **Budget Management**: Set and track budgets for activities
+- ⚡ **Real-time Updates**: Automatic calculations of balances and settlements
+
+### Technical Features
+
+- 📱 Cross-platform (iOS & Android) support
+- 🔄 Offline-first with local SQLite database
+- 🎨 Modern UI with React Native Paper
+- 📈 Interactive charts and visualizations
+- 🔒 Type-safe with TypeScript
+
+## Demo
+
+### 🏠 Home Screen
+
+The central hub for managing all your activities. Create new events or tap into existing ones to review expenses and statistics.
+
+|                       Activities List                       |                    Create New Activity                     |
+| :---------------------------------------------------------: | :--------------------------------------------------------: |
+| ![Activities List](./screenshots/v1.0.0/tab_activities.png) | ![Create Activity](./screenshots/v1.0.0/form_activity.png) |
+
+### 📊 Activity Detail
+
+Each activity provides a detailed breakdown of spending with three statistical graphs:
+
+|                          Contribution Distribution                           |                             Budget Utilization                             |                        Payment Overview                        |
+| :--------------------------------------------------------------------------: | :------------------------------------------------------------------------: | :------------------------------------------------------------: |
+| ![Contribution Chart](./screenshots/v1.0.0/detail_activity_contribution.png) | ![Utilization Chart](./screenshots/v1.0.0/detail_activity_utilization.png) | ![Payment Chart](./screenshots/v1.0.0/detail_activity_pay.png) |
+
+### 🤝 Settlement Plan
+
+Clear visualization of who should pay whom, with two settlement strategies available:
+
+|                   Settlement Overview                   |
+| :-----------------------------------------------------: |
+| ![Settlement Plan](./screenshots/v1.0.0/settlement.png) |
+
+## Tech Stack
+
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **Database**: SQLite for local data storage
+- **Charts**: React Native Gifted Charts
+- **Navigation**: Expo Router
+- **UI Components**: React Native Paper
+- **State Management**: React Context API
+- **Animations**: React Native Reanimated
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for Mac) or Android Emulator
+- Expo Go app (for physical device testing)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/dynamic-bill.git
+   cd dynamic-bill
+   ```
+
+2. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Start the development server:
 
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Run on your preferred platform:
+   - Press `i` for iOS Simulator
+   - Press `a` for Android Emulator
+   - Scan QR code with Expo Go app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## License
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+© 2025 Cheng Shi. All rights reserved.
 
-## Get a fresh project
+This software is proprietary and confidential. Unauthorized copying, distribution, or use of this software, via any medium, is strictly prohibited.
 
-When you're ready, run:
+## Contact
 
-```bash
-npm run reset-project
-```
+- GitHub: [@c-shi](https://github.com/C-Shi)
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Acknowledgments
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [Expo](https://expo.dev)
+- [React Native Paper](https://callstack.github.io/react-native-paper/)
+- [React Native Gifted Charts](https://github.com/Abhinandan-Kushwaha/react-native-gifted-charts)
