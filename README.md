@@ -39,46 +39,25 @@ DynamicBill is a React Native application that helps groups manage shared expens
 
 The central hub for managing all your activities. Create new events or tap into existing ones to review expenses and statistics.
 
-<div style="display: flex; justify-content: flex-start; gap: 20px;">
-  <div>
-    <img src="./screenshots/v1.0.0/tab_activities.png" alt="Activities List" width="200" />
-    <p style="text-align: center;"><em>Activities List</em></p>
-  </div>
-  <div>
-    <img src="./screenshots/v1.0.0/form_activity.png" alt="Create Activity" width="200" />
-    <p style="text-align: center;"><em>Create New Activity</em></p>
-  </div>
-</div>
+|                       Activities List                       |                    Create New Activity                     |
+| :---------------------------------------------------------: | :--------------------------------------------------------: |
+| ![Activities List](./screenshots/v1.0.0/tab_activities.png) | ![Create Activity](./screenshots/v1.0.0/form_activity.png) |
 
 ### 📊 Activity Detail
 
 Each activity provides a detailed breakdown of spending with three statistical graphs:
 
-<div style="display: flex; justify-content: flex-start; gap: 20px;">
-  <div>
-    <img src="./screenshots/v1.0.0/detail_activity_contribution.png" alt="Contribution Chart" width="200" />
-    <p style="text-align: center;"><em>Contribution Distribution</em></p>
-  </div>
-  <div>
-    <img src="./screenshots/v1.0.0/detail_activity_utilization.png" alt="Utilization Chart" width="200" />
-    <p style="text-align: center;"><em>Budget Utilization</em></p>
-  </div>
-  <div>
-    <img src="./screenshots/v1.0.0/detail_activity_pay.png" alt="Payment Chart" width="200" />
-    <p style="text-align: center;"><em>Payment Overview</em></p>
-  </div>
-</div>
+|                          Contribution Distribution                           |                             Budget Utilization                             |                        Payment Overview                        |
+| :--------------------------------------------------------------------------: | :------------------------------------------------------------------------: | :------------------------------------------------------------: |
+| ![Contribution Chart](./screenshots/v1.0.0/detail_activity_contribution.png) | ![Utilization Chart](./screenshots/v1.0.0/detail_activity_utilization.png) | ![Payment Chart](./screenshots/v1.0.0/detail_activity_pay.png) |
 
 ### 🤝 Settlement Plan
 
 Clear visualization of who should pay whom, with two settlement strategies available:
 
-<div style="display: flex; justify-content: flex-start;">
-  <div>
-    <img src="./screenshots/v1.0.0/settlement.png" alt="Settlement Plan" width="200" />
-    <p style="text-align: center;"><em>Settlement Overview</em></p>
-  </div>
-</div>
+|                   Settlement Overview                   |
+| :-----------------------------------------------------: |
+| ![Settlement Plan](./screenshots/v1.0.0/settlement.png) |
 
 ## Tech Stack
 
