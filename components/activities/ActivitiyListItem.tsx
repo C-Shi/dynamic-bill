@@ -7,13 +7,29 @@ import { Key, useContext } from "react";
 import { useRouter } from "expo-router";
 import { ActivityContext } from "@/context/ActivityContext";
 
+/**
+ * ActivityListItem Component
+ * Displays a single activity in a list format.
+ * Features:
+ * - Activity title and total amount
+ * - Creation date and participant count
+ * - Budget information (if available)
+ * - Participant avatars with overflow indicator
+ * - Delete functionality with confirmation
+ *
+ * @param activity - The activity object to display
+ */
 export default function ActivityListItem({ activity }: { activity: Activity }) {
   const router = useRouter();
   const { remove } = useContext(ActivityContext);
   const participants = activity.participants;
+  // Show only first 4 participants, with a count for the rest
   const visibleParticipant = participants.slice(0, 4);
   const invisibleParticipantCount = participants.length - 4;
 
+  /**
+   * Handle activity deletion with confirmation dialog
+   */
   async function deleteActivity() {
     Alert.alert("Warning!!", "Are you sure you want to delete this activity?", [
       {
@@ -41,10 +57,13 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
         router.push(`/activities/${activity.id}`);
       }}
     >
+      {/* Activity Title and Total Amount */}
       <View style={styles.summaryLine}>
         <Text style={styles.activityName}>{activity.title}</Text>
         <Text style={styles.totalAmount}>{activity.totalAmountDisplay}</Text>
       </View>
+
+      {/* Activity Details */}
       <View style={styles.detailLine}>
         <Text style={styles.detail}>
           {participants.length} people {`\u2022`} Created on:{" "}
@@ -56,8 +75,11 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
           </Text>
         )}
       </View>
+
+      {/* Participant Avatars and Delete Button */}
       <View style={styles.participantLine}>
         <View style={styles.participants}>
+          {/* Display first 4 participants */}
           {visibleParticipant.map((p: string, index: number): any => (
             <Avatar
               key={index}
@@ -68,6 +90,7 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
               }}
             />
           ))}
+          {/* Show count of remaining participants */}
           {invisibleParticipantCount > 0 && (
             <View style={styles.extraAvatar}>
               <Text style={styles.extraText}>+{invisibleParticipantCount}</Text>

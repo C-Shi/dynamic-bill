@@ -1,13 +1,26 @@
-import { Activity } from "@/model/Activity";
 import { View, Text, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import Colors from "@/constant/Color";
 
+// Chart layout constants
 const MIN_BAR_WIDTH = 20; // Minimum width for readability
 const MAX_BAR_WIDTH = 40; // Maximum width for aesthetics
 const BAR_GAP = 10; // Gap between bars
 const screenWidth = Dimensions.get("window").width;
 
+/**
+ * ActivityPayChart Component
+ * Displays a horizontal bar chart comparing paid and owed amounts for each participant.
+ * Features:
+ * - Horizontal scrolling for many participants
+ * - Dynamic bar width based on screen size
+ * - Currency formatting for amounts
+ * - Legend for paid vs owed amounts
+ * - Auto-scaling y-axis based on maximum values
+ *
+ * @param dataset - Array of participants with their paid and owed amounts
+ * @param chartColorSet - Array of colors for the chart bars
+ */
 export default function ActivityPayChart({
   dataset,
   chartColorSet,
@@ -15,6 +28,7 @@ export default function ActivityPayChart({
   dataset: any[];
   chartColorSet: string[];
 }) {
+  // Format numbers as Canadian currency
   const currencyHelper = (val: number) => {
     return Intl.NumberFormat("en-CA", {
       style: "currency",
@@ -22,6 +36,8 @@ export default function ActivityPayChart({
     }).format(val);
   };
 
+  // Transform participant data into bar chart format
+  // Each participant gets two bars: one for paid amount, one for owed amount
   const barData = dataset.flatMap((p) => {
     return [
       {
@@ -36,6 +52,7 @@ export default function ActivityPayChart({
     ];
   });
 
+  // Calculate maximum value for y-axis with smart rounding
   const barMaxValue = (function () {
     const max = dataset.reduce((prev, curr) => {
       return Math.max(curr.totalOwed, curr.totalPaid, prev);
@@ -51,6 +68,7 @@ export default function ActivityPayChart({
     return rounded;
   })();
 
+  // Calculate optimal chart and bar widths based on screen size and data length
   const { chartWidth, barWidth } = (function (): any {
     const dataLength = barData.length;
     const calculatedBarWidth = Math.min(
@@ -67,6 +85,7 @@ export default function ActivityPayChart({
 
   return (
     <View style={styles.mainContainer}>
+      {/* Legend showing paid vs owed colors */}
       <View style={styles.legendContainer}>
         <View style={styles.legend}>
           <View
@@ -82,6 +101,8 @@ export default function ActivityPayChart({
           <Text style={{ color: Colors.Main }}>Owed</Text>
         </View>
       </View>
+
+      {/* Horizontally scrollable bar chart */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={true}

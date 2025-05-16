@@ -1,4 +1,3 @@
-import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
 import {
   dollar,
@@ -8,13 +7,19 @@ import {
 import { View, Text, StyleSheet } from "react-native";
 import Avatar from "../shared/Avatar";
 import Colors from "@/constant/Color";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
+/**
+ * Props for the ActivitySettlement component
+ */
 type SettlementProp = {
   strategy: "minimum" | "proportional";
   participants: Participant[];
 };
 
+/**
+ * Strategy descriptions and analysis for each settlement method
+ */
 const STRATEGY_PROP = {
   minimum: {
     name: "Minimum Transaction",
@@ -24,16 +29,31 @@ const STRATEGY_PROP = {
   proportional: {
     name: "Proportional One-To-Many",
     analysis:
-      "Each debtor pays all creditors in proportion to how much the creditors are owed. This ensures fairness by distributing each debtor’s debt based on the relative claims of the creditors. Any rounding differences are corrected by adjusting the largest payment to maintain balance.",
+      "Each debtor pays all creditors in proportion to how much the creditors are owed. This ensures fairness by distributing each debtor's debt based on the relative claims of the creditors. Any rounding differences are corrected by adjusting the largest payment to maintain balance.",
   },
 };
 
+/**
+ * ActivitySettlement Component
+ * Displays a settlement plan for group expenses using different strategies.
+ * Features:
+ * - Summary of total payout, participant count, and transaction count
+ * - Individual participant cards showing net balance and required transactions
+ * - Color-coded avatars indicating creditor (green) or debtor (red) status
+ * - Detailed transaction list for each participant
+ * - AI analysis of the chosen settlement strategy
+ *
+ * @param strategy - The settlement strategy to use ("minimum" or "proportional")
+ * @param participants - Array of participants with their payment data
+ */
 export default function ActivitySettlement({
   strategy,
   participants,
 }: SettlementProp) {
+  // State for storing calculated payment transactions
   const [payments, setPayments] = useState<any[]>([]);
 
+  // Calculate payments based on selected strategy
   useEffect(() => {
     setPayments(() => {
       switch (strategy) {
@@ -47,11 +67,14 @@ export default function ActivitySettlement({
     });
   }, []);
 
+  // Calculate total amount to be circulated
   const totalCirculate = payments.reduce((t, p) => t + p.amount, 0);
 
+  // Generate participant cards with their payment details
   const paymentPerParticipant = participants
     .sort((a: Participant, b: Participant) => b.net - a.net)
     .map((p: Participant) => {
+      // Collect all payments for this participant
       let paymentArray: { type: string; name: any; amount: any }[] = [];
       payments.forEach((pm) => {
         // if pay to this participant, it is a RECEIVED transaction
@@ -73,6 +96,7 @@ export default function ActivitySettlement({
 
       return (
         <View key={p.id} style={styles.participantCard}>
+          {/* Participant header with avatar and net balance */}
           <View style={styles.participantRow}>
             <Avatar
               name={p.name}
@@ -93,6 +117,7 @@ export default function ActivitySettlement({
                 : ` ${p.name} needs to pay ${dollar(Math.abs(p.net))}`}
             </Text>
           </View>
+          {/* List of payments for this participant */}
           <View style={styles.paymentRow}>
             <View style={styles.verticalDivider} />
             <View>
@@ -112,6 +137,7 @@ export default function ActivitySettlement({
     });
   return (
     <>
+      {/* Summary section showing key metrics */}
       <View style={styles.info}>
         <View>
           <Text style={styles.infoTitle}>Total Payout</Text>
@@ -128,8 +154,8 @@ export default function ActivitySettlement({
           <Text style={styles.infoMain}>{payments.length}</Text>
         </View>
       </View>
-      {/** Settlement transaction */}
 
+      {/* Settlement plan header with strategy name */}
       <View style={styles.settlementHeader}>
         <Text style={{ color: Colors.Primary, fontSize: 20, fontWeight: 700 }}>
           Settlement Plan
@@ -138,8 +164,11 @@ export default function ActivitySettlement({
           {STRATEGY_PROP[strategy].name}
         </Text>
       </View>
+
+      {/* List of participant cards */}
       <View>{participants.length > 0 && paymentPerParticipant}</View>
-      {/** AI Analysis */}
+
+      {/* AI analysis of the chosen strategy */}
       <View style={styles.ai}>
         <Text style={styles.aih}>🤖 AI Analysis</Text>
         <Text style={styles.aib}>{STRATEGY_PROP[strategy].analysis}</Text>

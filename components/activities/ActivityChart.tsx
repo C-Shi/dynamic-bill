@@ -7,6 +7,18 @@ import React, { useState } from "react";
 import { Participant } from "@/model/Participant";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Activity } from "@/model/Activity";
+
+/**
+ * ActivityChart Component
+ * A component that displays various charts for activity data visualization.
+ * Features:
+ * - Contribution chart showing how much each participant contributed
+ * - Utilization chart showing budget usage (if budget exists)
+ * - Settlement chart showing paid vs owed amounts
+ *
+ * @param dataset - Array of participants with their financial data
+ * @param activity - The activity object containing budget and total information
+ */
 export default function ActivityChart({
   dataset,
   activity,
@@ -14,15 +26,17 @@ export default function ActivityChart({
   dataset: Participant[];
   activity: Activity;
 }) {
+  // State for tracking which chart type is currently selected
   const [chartType, setChartType] = useState<
     "contribution" | "settlement" | "utilization"
   >("contribution");
 
-  // check if there is expenses, if not no need to show any graph
+  // Calculate total amount paid by all participants
   const ttl = dataset.reduce((prev: number, p: Participant): number => {
     return p.totalPaid + prev;
   }, 0);
 
+  // Show "No Data" message if there are no expenses
   if (ttl === 0) {
     return (
       <View style={[styles.container, styles.textContainer]}>
@@ -39,8 +53,10 @@ export default function ActivityChart({
     );
   }
 
+  // Generate a color set for the charts based on number of participants
   const chartColorSet = ColorSet.newSet(dataset.length);
 
+  // Default to contribution chart
   let chartToDisplay = (
     <ActivityContributionChart
       dataset={dataset}
@@ -48,6 +64,7 @@ export default function ActivityChart({
     ></ActivityContributionChart>
   );
 
+  // Switch to settlement chart if selected
   if (chartType === "settlement") {
     chartToDisplay = (
       <ActivityPayChart
@@ -57,6 +74,7 @@ export default function ActivityChart({
     );
   }
 
+  // Switch to utilization chart if selected and budget exists
   if (chartType === "utilization") {
     const utilizationData = [
       {
@@ -78,6 +96,7 @@ export default function ActivityChart({
 
   return (
     <View style={styles.container}>
+      {/* Chart Type Selection Buttons */}
       <View style={styles.chartButtonGroup}>
         <TouchableOpacity
           onPress={() => setChartType("contribution")}
@@ -102,6 +121,7 @@ export default function ActivityChart({
             Contribution
           </Text>
         </TouchableOpacity>
+        {/* Show utilization button only if activity has a budget */}
         {!!activity.budget && (
           <TouchableOpacity
             onPress={() => setChartType("utilization")}
@@ -149,6 +169,7 @@ export default function ActivityChart({
           </Text>
         </TouchableOpacity>
       </View>
+      {/* Display the selected chart */}
       {chartToDisplay}
     </View>
   );

@@ -13,6 +13,9 @@ import {
 } from "react-native";
 import TouchableCard from "@/components/shared/TouchableCard";
 
+/**
+ * Base props shared between new and update activity forms
+ */
 type BaseProps = {
   activity: any;
   setActivity: any;
@@ -20,12 +23,20 @@ type BaseProps = {
   onCancel: () => any;
 };
 
+/**
+ * Props specific to creating a new activity
+ * Includes participant management functionality
+ */
 type NewActivityProps = BaseProps & {
   type: "new";
   participants: string[];
   setParticipants: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
+/**
+ * Props specific to updating an existing activity
+ * Does not include participant management
+ */
 type UpdateActivityProps = BaseProps & {
   type: "update";
   participants?: undefined;
@@ -34,6 +45,24 @@ type UpdateActivityProps = BaseProps & {
 
 type ActivityProps = NewActivityProps | UpdateActivityProps;
 
+/**
+ * ActivityForm Component
+ * A form component for creating new activities or updating existing ones.
+ * Features:
+ * - Activity title and note input
+ * - Activity type selection with icons
+ * - Optional budget setting with numeric input
+ * - Participant management for new activities
+ * - Form validation and submission handling
+ *
+ * @param type - "new" for creating, "update" for modifying
+ * @param activity - Activity data object
+ * @param setActivity - Function to update activity data
+ * @param participants - Array of participant names (new activity only)
+ * @param setParticipants - Function to update participants (new activity only)
+ * @param onOk - Callback for form submission
+ * @param onCancel - Callback for form cancellation
+ */
 export default function ActivityForm({
   type,
   activity,
@@ -43,11 +72,13 @@ export default function ActivityForm({
   onOk,
   onCancel,
 }: ActivityProps) {
+  // State for available activity types and new participant input
   const [activityTypes, setActivityTypes] = useState([]);
   const [newParticipant, setNewParticipant] = useState("");
 
   console.log(activity);
 
+  // Load activity types from database on mount
   useEffect(() => {
     (async () => {
       const data = await DB.get("activity_types");
@@ -55,19 +86,24 @@ export default function ActivityForm({
     })();
   }, []);
 
+  // Update activity field value
   function onChangeActivity(field: string, value: string) {
     setActivity({ ...activity, [field]: value });
   }
+
+  // Update activity type
   function onSelectActivityType(type: string) {
     setActivity((prev: any) => {
       return { ...prev, type };
     });
   }
 
+  // Toggle budget input field
   function onToggleBudget(val: boolean): void {
     setActivity({ ...activity, budget: val ? 0 : undefined });
   }
 
+  // Update budget value with decimal validation
   function onChangeBudget(val: string): void {
     const regex = /^\d*\.?\d{0,2}$/;
 
@@ -76,6 +112,7 @@ export default function ActivityForm({
     }
   }
 
+  // Remove participant from list (new activity only)
   function removeParticipant(index: number) {
     if (type === "update") {
       return;
@@ -83,6 +120,7 @@ export default function ActivityForm({
     setParticipants!((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // Add new participant with duplicate check (new activity only)
   function onAddParticipant() {
     if (type === "update") {
       return;
@@ -107,6 +145,7 @@ export default function ActivityForm({
       contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
       style={styles.container}
     >
+      {/* Activity Information Section */}
       <View style={styles.section}>
         <Text style={styles.label}>Activity Info</Text>
         <Text style={styles.subLabel}>Titile</Text>
@@ -127,6 +166,7 @@ export default function ActivityForm({
           value={activity.note}
         />
 
+        {/* Activity Type Selection */}
         <Text style={styles.subLabel}>Event Type</Text>
         <View style={styles.grid}>
           {activityTypes.map((item: { [key: string]: any }) => (
@@ -157,6 +197,7 @@ export default function ActivityForm({
           ))}
         </View>
 
+        {/* Budget Toggle and Input */}
         <View
           style={{
             flexDirection: "row",
@@ -190,6 +231,8 @@ export default function ActivityForm({
           </Text>
         )}
       </View>
+
+      {/* Participant Management Section (New Activity Only) */}
       {type === "new" && (
         <View style={styles.section}>
           <Text style={styles.label}>Participants</Text>
@@ -208,6 +251,7 @@ export default function ActivityForm({
             </TouchableOpacity>
           </View>
 
+          {/* Participant Badges */}
           <View style={styles.badgeContainer}>
             {participants.map((participant, index) => (
               <View key={index} style={styles.badge}>
@@ -228,6 +272,7 @@ export default function ActivityForm({
         </View>
       )}
 
+      {/* Form Action Buttons */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
           <Text style={styles.cancelBtnText}>Cancel</Text>
