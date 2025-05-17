@@ -1,7 +1,7 @@
 import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 import {
   View,
   Text,

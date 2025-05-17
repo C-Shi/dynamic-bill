@@ -20,7 +20,7 @@ import {
 } from "react-native-paper";
 import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 import { ParticipantExpense } from "@/model/ParticipantExpense";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
@@ -138,8 +138,10 @@ export default function NewExpense({
     });
 
     try {
-      await DB.insert("expenses", expData);
-      await DB.insert("participant_expenses", peData);
+      await DB.transaction(async () => {
+        await DB.insert("expenses", expData);
+        await DB.insert("participant_expenses", peData);
+      });
     } catch (e) {
       alert("Add Expense Failed");
     } finally {

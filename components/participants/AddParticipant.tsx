@@ -13,7 +13,7 @@ import {
 import Colors from "@/constant/Color";
 import { ActivityContext } from "@/context/ActivityContext";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 
 /**
  * AddParticipant Component

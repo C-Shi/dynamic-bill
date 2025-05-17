@@ -7,6 +7,7 @@ interface IDatabaseAdapter {
     db: any;
     init(): Promise<void>;
     seed(): Promise<void>;
+    transaction(callback: () => Promise<void>): Promise<void>;
     query(query: string, params: any[]): Promise<any[]>;
     first(query: string, params: any[]): Promise<any>;
     get(table: string, where?: { [key: string]: [string, string] }): Promise<any[]>;
@@ -54,6 +55,15 @@ export class DB {
      */
     static async seed(): Promise<void> {
         return DB.adapter.seed();
+    }
+
+    /**
+     * Executes a transaction on the database
+     * @param callback Callback function to execute within the transaction
+     * @returns Promise resolving to transaction result
+     */
+    static async transaction(callback: () => Promise<void>): Promise<void> {
+        return DB.adapter.transaction(callback);
     }
 
     /**

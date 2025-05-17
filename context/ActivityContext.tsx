@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Activity } from "@/model/Activity";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 import { Participant } from "@/model/Participant";
 
 /**
@@ -120,7 +120,6 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
    * @param activity Activity to be added
    */
   const add = async (activity: Activity): Promise<any> => {
-    /** @todo Optimize save process - data consistency between state and db */
     try {
       const entity = activity.toEntity();
       const participants = activity.participants.map((p) =>
@@ -129,12 +128,14 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
           activityId: activity.id,
         }).toEntity()
       );
-      await DB.insert("activities", entity);
-      await DB.insert("participants", participants);
+      await DB.transaction(async () => {
+        await DB.insert("activities", entity);
+        await DB.insert("participants", participants);
+      });
       dispatch({ type: "ADD_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error adding activity:", error);
-      throw error;
+      alert("Error adding activity");
     }
   };
 

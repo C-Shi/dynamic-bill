@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useState } from "react";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 
 /**
  * Type definition for the add operations in the context

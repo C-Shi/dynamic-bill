@@ -199,6 +199,16 @@ export class SQLiteAdapter {
     }
 
     /**
+     * Executes a transaction on the database
+     * @param callback Callback function to execute within the transaction
+     * @returns Promise resolving to transaction result
+     */
+    public static async transaction(callback: () => Promise<void>): Promise<void> {
+        const db = await SQLiteAdapter.db()
+        return db.withTransactionAsync(callback)
+    }
+
+    /**
      * Executes a query and returns all results
      * @param query SQL query string
      * @param params Query parameters
