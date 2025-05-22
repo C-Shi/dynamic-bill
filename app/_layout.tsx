@@ -6,6 +6,7 @@ import Colors from "@/constant/Color";
 import { CurrentActivityDetailContextProvider } from "@/context/CurrentActivityDetailContext";
 import { DB } from "@/utils/db";
 import { init } from "@/utils/init";
+import { migrate } from "@/utils/migrationManager";
 
 import {
   configureReanimatedLogger,
@@ -27,10 +28,8 @@ export default function RootLayout() {
 
   const initApp = async () => {
     try {
-      // await DB.init();
-      // if (__DEV__) {
-      //   await DB.seed();
-      // }
+      await DB.init();
+      await migrate();
       await init();
       setReady(true);
     } catch (err) {
