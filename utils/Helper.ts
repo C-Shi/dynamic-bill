@@ -14,14 +14,55 @@ interface PaymentTransaction {
 /**
  * Formats a number as Canadian currency
  * @param amount - The amount to format
+ * @param format - Optional format ('K' for thousands, 'M' for millions, 'B' for billions)
  * @param locale - The locale to use for formatting (defaults to 'en-CA')
  * @returns Formatted currency string
  */
-export function dollar(amount: number, locale: string = 'en-CA'): string {
+export function dollar(amount: number, format?: 'K' | 'M' | 'B', locale: string = 'en-CA'): string {
+    // If format is explicitly provided, use it
+    if (format) {
+        let divisor = 1;
+        switch (format) {
+            case 'K':
+                divisor = 1000;
+                break;
+            case 'M':
+                divisor = 1000000;
+                break;
+            case 'B':
+                divisor = 1000000000;
+                break;
+        }
+        const scaledAmount = amount / divisor;
+        const formatted = Intl.NumberFormat(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(scaledAmount);
+        return `$${formatted}${format}`;
+    }
+
+    // Auto format only if no format is specified
+    if (amount >= 1000000000) { // >= 1B
+        const scaledAmount = amount / 1000000;
+        const formatted = Intl.NumberFormat(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(scaledAmount);
+        return `$${formatted}M`;
+    } else if (amount >= 1000000) { // >= 1M
+        const scaledAmount = amount / 1000;
+        const formatted = Intl.NumberFormat(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(scaledAmount);
+        return `$${formatted}K`;
+    }
+
+    // For amounts < 1M or when format is specified, use regular currency formatting
     return Intl.NumberFormat(locale, {
         style: "currency",
         currency: "CAD"
-    }).format(amount)
+    }).format(amount);
 }
 
 /**
