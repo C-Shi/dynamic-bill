@@ -76,8 +76,6 @@ export default function ActivityForm({
   const [activityTypes, setActivityTypes] = useState([]);
   const [newParticipant, setNewParticipant] = useState("");
 
-  console.log(activity);
-
   // Load activity types from database on mount
   useEffect(() => {
     (async () => {

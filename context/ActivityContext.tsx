@@ -130,7 +130,9 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
       );
       await DB.transaction(async () => {
         await DB.insert("activities", entity);
-        await DB.insert("participants", participants);
+        if (participants.length > 0) {
+          await DB.insert("participants", participants);
+        }
       });
       dispatch({ type: "ADD_ACTIVITY", payload: activity });
     } catch (error) {
