@@ -101,13 +101,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
         />
       ),
       onPress: () => {
-        if (expenses.length > 0) {
-          alert(
-            "Cannot add participant for activities with expenses. This limitation will be removed on v2"
-          );
-        } else {
-          setParticipantModal(true);
-        }
+        setParticipantModal(true);
       },
     },
     {

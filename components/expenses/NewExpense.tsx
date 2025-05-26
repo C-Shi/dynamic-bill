@@ -242,13 +242,6 @@ export default function NewExpense({
         >
           Add Expense
         </Button>
-
-        {/* Warning about participant modification */}
-        <View style={{ marginVertical: 16 }}>
-          <Text style={{ color: Colors.Coffee, fontSize: 14 }}>
-            ⚠️ You cannot add/remove participants after you add expenses.
-          </Text>
-        </View>
       </ScrollView>
     </PaperProvider>
   );

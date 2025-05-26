@@ -32,6 +32,8 @@ export class DB {
         };
     } = {};
 
+    private static pendingNotifications: { table: string; action: "insert" | "update"; payload: any }[] = [];
+
     /**
      * Sets the database adapter to use for database operations.
      * 
@@ -63,7 +65,20 @@ export class DB {
      * @returns Promise resolving to transaction result
      */
     static async transaction(callback: () => Promise<void>): Promise<void> {
-        return DB.adapter.transaction(callback);
+        // Clear any pending notifications before starting transaction
+        DB.pendingNotifications = [];
+
+        try {
+            await DB.adapter.transaction(callback);
+
+            // After transaction completes successfully, process all pending notifications
+            for (const notification of DB.pendingNotifications) {
+                await DB.notify(notification.table, notification.action, notification.payload);
+            }
+        } finally {
+            // Clear pending notifications even if transaction fails
+            DB.pendingNotifications = [];
+        }
     }
 
     /**
@@ -112,7 +127,13 @@ export class DB {
     public static async insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<void> {
         console.log(`Table ${table} - DB.Insert`);
         await DB.adapter.insert(table, data);
-        DB.notify(table, 'insert', data); // Notify listeners about the insert operation
+
+        // Queue the notification instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'insert',
+            payload: data
+        });
     }
 
     /**
@@ -125,7 +146,13 @@ export class DB {
     public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<void> {
         console.log(`Table ${table} - DB.Update`);
         await DB.adapter.update(table, id, data);
-        DB.notify(table, 'update', data); // Notify listeners about the update operation
+
+        // Queue the notification instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'update',
+            payload: data
+        });
     }
 
     /**
