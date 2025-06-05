@@ -13,7 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 type obj = { [key: string]: any };
 type tableData = {
   columns: string[];
-  rows: { values: string[]; styles?: obj; onPress?: () => void }[];
+  rows: { values: any[]; styles?: obj; onPress?: () => void }[];
 };
 
 /**

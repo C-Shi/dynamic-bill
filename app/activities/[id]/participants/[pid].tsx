@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-} from "react-native";
-import Avatar from "@/components/shared/Avatar";
+import React, { useEffect } from "react";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 
 import { useNavigation, useLocalSearchParams } from "expo-router";
 import Colors from "@/constant/Color";
+import DataTable from "@/components/shared/DataTable";
+import { dollar } from "@/utils/Helper";
 
 const participant = {
   name: "Emily Johnson",
@@ -21,11 +15,30 @@ const participant = {
   roleDescription:
     "You consistently maintain a positive balance, often covering more than your share. Your friends appreciate your generosity!",
   activities: [
-    { name: "Weekend Getaway", paidByYou: 450.0, yourPortion: 300.0 },
-    { name: "Dinner at Osteria", paidByYou: 210.75, yourPortion: 175.25 },
-    { name: "Concert Tickets", paidByYou: 320.0, yourPortion: 320.0 },
-    { name: "Grocery Shopping", paidByYou: 120.0, yourPortion: 85.0 },
-    { name: "Utility Bills", paidByYou: 150.0, yourPortion: 100.0 },
+    {
+      expenseName: "Dinner at Osteria",
+      total: 210.75,
+      youPaid: 210.75,
+      yourPortion: 175.25,
+    },
+    {
+      expenseName: "Concert Tickets",
+      total: 180.0,
+      youPaid: 0,
+      yourPortion: 40,
+    },
+    {
+      expenseName: "Grocery Shopping",
+      total: 120.0,
+      youPaid: 120.0,
+      yourPortion: 85.0,
+    },
+    {
+      expenseName: "Utility Bills",
+      total: 180.0,
+      youPaid: 150.0,
+      yourPortion: 100.0,
+    },
   ],
 };
 
@@ -35,15 +48,13 @@ const getBalanceColor = (balance: number) => {
   return "#b45309"; // amber
 };
 
-const getPercentage = (value: number, max: number) => (value / max) * 100;
-
 export default function ParticipantDetails() {
   const { pid } = useLocalSearchParams();
   const participantId = pid;
   console.log(participantId);
   // Max value per activity for bar scaling
   const maxValuePerActivity = participant.activities.map(
-    (a) => Math.max(a.paidByYou, a.yourPortion) * 1.2
+    (a) => Math.max(a.youPaid, a.yourPortion) * 1.2
   );
 
   const navigation = useNavigation();
@@ -54,50 +65,47 @@ export default function ParticipantDetails() {
     });
   });
 
-  const renderActivity = ({ item, index }: { item: any; index: number }) => {
-    const max = maxValuePerActivity[index];
-    const paidPct = getPercentage(item.paidByYou, max);
-    const portionPct = getPercentage(item.yourPortion, max);
+  const tableData = {
+    columns: ["Expense", "Paid by You", "Your Portion"],
+    rows: participant.activities.map((expense, i) => {
+      const yourPct = (expense.yourPortion / expense.total) * 100;
+      const portion = (
+        <>
+          <Text>{dollar(expense.yourPortion)}</Text>
+          <View style={styles.barsContainer}>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: `${yourPct}%`,
+                    backgroundColor: Colors.Secondary,
+                    borderTopLeftRadius: 4,
+                    borderBottomLeftRadius: 4,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        </>
+      );
 
-    return (
-      <View style={styles.activityCard}>
-        <View style={styles.activityHeader}>
-          <Text style={[styles.activityName]}>{item.name}</Text>
-          <Text style={styles.activityAmount}>
-            Paid by You: ${item.paidByYou.toFixed(2)}
-          </Text>
-          <Text style={styles.activityAmount}>
-            Your Portion: ${item.yourPortion.toFixed(2)}
-          </Text>
-        </View>
-        <View style={styles.barsContainer}>
-          <View style={styles.barLabel}>
-            <Text style={{ color: "#4A90E2" }}>■</Text>
-            <Text style={styles.barLabelText}>Paid by You</Text>
-          </View>
-          <View style={styles.progressBarBackground}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: `${paidPct}%`, backgroundColor: "#4A90E2" },
-              ]}
-            />
-          </View>
-          <View style={styles.barLabel}>
-            <Text style={{ color: "#9B6ADE" }}>■</Text>
-            <Text style={styles.barLabelText}>Your Portion</Text>
-          </View>
-          <View style={styles.progressBarBackground}>
-            <View
-              style={[
-                styles.progressBar,
-                { width: `${portionPct}%`, backgroundColor: "#9B6ADE" },
-              ]}
-            />
-          </View>
-        </View>
-      </View>
-    );
+      const youPaid = <Text>{dollar(expense.youPaid)}</Text>;
+
+      const expenseName = (
+        <Text style={{ textAlign: "left" }}>{expense.expenseName}</Text>
+      );
+      return {
+        values: [expenseName, youPaid, portion],
+        styles: [
+          {
+            marginLeft: 10,
+          },
+          null,
+          null,
+        ],
+      };
+    }),
   };
 
   const summeryCard = (
@@ -147,16 +155,13 @@ export default function ParticipantDetails() {
         {summeryCard}
         {roleCard}
 
-        {/* Activity Breakdown */}
-        <Text style={styles.sectionTitle}>Activity Breakdown</Text>
+        {/* Expenses Breakdown */}
+        <Text style={styles.sectionTitle}>Expenses Breakdown</Text>
 
-        <FlatList
-          data={participant.activities}
-          keyExtractor={(item) => item.name}
-          renderItem={renderActivity}
-          contentContainerStyle={{ paddingBottom: 16 }}
-          scrollEnabled={false}
-        />
+        <DataTable
+          data={tableData}
+          headerStyle={{ backgroundColor: Colors.Secondary }}
+        ></DataTable>
       </ScrollView>
     </View>
   );
@@ -270,8 +275,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   progressBarBackground: {
+    marginTop: 8,
     flex: 1,
-    backgroundColor: "#E9ECEF",
+    backgroundColor: Colors.SubText,
     borderRadius: 4,
     marginRight: 8,
   },
