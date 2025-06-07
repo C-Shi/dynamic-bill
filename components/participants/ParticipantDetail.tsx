@@ -79,13 +79,13 @@ export default function ParticipantDetails({
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>💳 Total Paid</Text>
           <Text style={styles.summaryValue}>
-            ${dollar(participant.totalPaid)}
+            {dollar(participant.totalPaid)}
           </Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}> 🫴 Total Owed</Text>
           <Text style={styles.summaryValue}>
-            ${dollar(participant.totalOwed)}
+            {dollar(participant.totalOwed)}
           </Text>
         </View>
         <View style={styles.summaryItem}>
@@ -96,7 +96,7 @@ export default function ParticipantDetails({
               { color: participant.net > 0 ? Colors.Success : Colors.Danger },
             ]}
           >
-            ${dollar(participant.net)}
+            {dollar(participant.net)}
           </Text>
         </View>
       </View>
@@ -106,9 +106,12 @@ export default function ParticipantDetails({
   const roleCards = Array.from(participantRoles).map((role) => {
     return (
       <View key={role.name} style={styles.roleCard}>
-        <Text style={styles.roleName}>
-          {role.emoji} {role.name}
-        </Text>
+        <View style={styles.roleNameContainer}>
+          <View style={styles.roleEmojiContainer}>
+            <Text style={styles.roleEmoji}>{role.emoji}</Text>
+          </View>
+          <Text style={styles.roleName}>{role.name}</Text>
+        </View>
         <Text style={styles.roleDescription}>{role.description}</Text>
       </View>
     );
@@ -190,19 +193,37 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
-    backgroundColor: Colors.Secondary,
+    backgroundColor: Colors.Card,
     alignItems: "flex-start",
   },
-  roleName: {
-    fontSize: 20,
-    color: "white",
-    textAlign: "left",
+  roleNameContainer: {
+    flexDirection: "row",
     marginBottom: 10,
   },
+  roleName: {
+    fontWeight: "bold",
+    color: Colors.Main,
+    fontSize: 18,
+    lineHeight: 36,
+    marginLeft: 10,
+  },
+  roleEmojiContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.Success,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.Success,
+  },
+  roleEmoji: {
+    lineHeight: 29,
+    fontSize: 26, // Adjust font size to fit nicely inside the circle
+  },
   roleDescription: {
-    color: "white",
-    fontSize: 14,
-    lineHeight: 20,
+    color: Colors.SubText,
+    fontSize: 12,
   },
   sectionTitle: {
     fontSize: 20,
