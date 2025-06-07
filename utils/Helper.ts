@@ -1,4 +1,5 @@
 import { Participant } from "@/model/Participant"
+import { Role, Roles } from "@/constant/Role"
 
 /**
  * Type definition for payment transactions
@@ -165,4 +166,24 @@ export function proportionalOneToManyStrategy(participants: Participant[]): Paym
     }
 
     return payments
+}
+
+/**
+ * Determine the role of a participant based on paid vs owed
+ * @param participant
+ * @returns All Roles that represent participants
+ */
+export function getParticipantRoles(participant: Participant): Set<Role> {
+    const participantRoles: Set<Role> = new Set()
+    const payRatio = participant.totalPaid / participant.totalOwed
+    if (payRatio >= 1.1) {
+        participantRoles.add(Roles.earlyPayer)
+    }
+    if (payRatio < 1.1 && payRatio > 0.9) {
+        participantRoles.add(Roles.evenSplitter)
+    }
+    if (payRatio <= 0.9) {
+        participantRoles.add(Roles.chillPayer)
+    }
+    return participantRoles
 }
