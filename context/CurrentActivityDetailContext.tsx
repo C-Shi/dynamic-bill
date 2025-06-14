@@ -37,6 +37,9 @@ type CurrentActivityDetailContextType = {
   /** Operations for adding participants and expenses */
   add: AddOperations;
 
+  /** Operations of updating participants and expenses */
+  update: any;
+
   /** Set the current activity and load its details */
   set: (id: string) => Promise<void>;
 };
@@ -122,12 +125,28 @@ export function CurrentActivityDetailContextProvider({
     expense: (expense: Expense) =>
       setExpenses((prev: Expense[]) => [...prev, expense]),
   };
+  /**
+   * Operations for updating existing participants and expenses
+   */
+  const update = {
+    participant: (participant: Participant) => {
+      setParticipants((prev: Participant[]) => {
+        return prev.map((p) => {
+          if (p.id !== participant.id) {
+            return p;
+          }
+          return participant;
+        });
+      });
+    },
+  };
 
   const value: CurrentActivityDetailContextType = {
     activityId,
     participants,
     expenses,
     add,
+    update,
     set,
   };
 

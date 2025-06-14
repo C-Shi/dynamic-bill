@@ -1,4 +1,11 @@
-import React, { View, Text, ScrollView, StyleSheet } from "react-native";
+import React, {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
 import Colors from "@/constant/Color";
 import DataTable from "@/components/shared/DataTable";
 import { dollar, getParticipantRoles } from "@/utils/Helper";
@@ -6,16 +13,28 @@ import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailCon
 import { useContext, useState, useEffect } from "react";
 import { DB } from "@/utils/db";
 import { EXPENSE_BREAKDOWN_QUERY } from "@/constant/Query";
+import { useNavigation } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import { Participant } from "@/model/Participant";
+import { ActivityContext } from "@/context/ActivityContext";
 
 export default function ParticipantDetails({
   participantId,
 }: {
   participantId: string;
 }) {
-  const { participants } = useContext(CurrentActivityDetailContext);
+  const { participants, update } = useContext(CurrentActivityDetailContext);
+  const { update: updateActivity } = useContext(ActivityContext);
   const participant = participants.find((p) => p.id === participantId)!;
   const participantRoles = getParticipantRoles(participant);
   const [expenseBreakdown, setExpenseBreakdown] = useState<any[]>([]);
+
+  const [onEditParticipant, setOnEditParticipant] = useState<Boolean>(false);
+  const [editingParticipantName, setEditingParticipantName] = useState<string>(
+    participant.name
+  );
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     DB.query(EXPENSE_BREAKDOWN_QUERY, [participantId, participantId]).then(
@@ -23,7 +42,33 @@ export default function ParticipantDetails({
         setExpenseBreakdown(result);
       }
     );
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setOnEditParticipant(true)}>
+          <FontAwesome name="trash-o" size={24} color={Colors.Background} />
+        </TouchableOpacity>
+      ),
+    });
   }, []);
+
+  function handleEditParticipantName() {
+    setOnEditParticipant(true);
+    setEditingParticipantName(participant.name);
+  }
+  async function handleUpdateParticipantName() {
+    await DB.update("participants", participantId, {
+      name: editingParticipantName,
+    });
+
+    // Update participant portion of current activity context
+    update.participant(
+      new Participant({ ...participant, name: editingParticipantName })
+    );
+
+    await updateActivity(participant.activityId);
+
+    setOnEditParticipant(false);
+  }
 
   const tableData = {
     columns: ["Expense", "Paid by You", "Your Portion"],
@@ -72,9 +117,45 @@ export default function ParticipantDetails({
     }),
   };
 
+  const nameShow = (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <Text style={styles.participantName}>{participant.name}&nbsp;&nbsp;</Text>
+      <FontAwesome
+        onPress={handleEditParticipantName}
+        name="edit"
+        size={17}
+        color={Colors.Primary}
+      />
+    </View>
+  );
+
+  const nameEdit = (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <TextInput
+        value={editingParticipantName}
+        onChangeText={(text) => setEditingParticipantName(text)}
+        style={{
+          color: Colors.Primary,
+          flex: 1,
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: Colors.Primary,
+          padding: 10,
+        }}
+      />
+      <FontAwesome
+        onPress={handleUpdateParticipantName}
+        name="check"
+        size={18}
+        color={Colors.Primary}
+        style={{ marginLeft: 10 }} // small gap from TextInput
+      />
+    </View>
+  );
+
   const summeryCard = (
     <View style={styles.summaryCard}>
-      <Text style={styles.participantName}>{participant.name}</Text>
+      {onEditParticipant ? nameEdit : nameShow}
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>💳 Total Paid</Text>

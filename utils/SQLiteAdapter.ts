@@ -175,6 +175,9 @@ export class SQLiteAdapter {
      */
     public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<any> {
         const columns = Object.keys(data);
+        if (data.id && data.id !== id) {
+            throw new Error('column id is not editable')
+        }
         const placeholders = columns.map((col) => `${col} = ?`).join(", ");
         const query = `UPDATE ${table} SET ${placeholders} WHERE id = ?`;
         const values = columns.map((col) => data[col]);
