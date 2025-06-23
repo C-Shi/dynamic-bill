@@ -139,6 +139,9 @@ export function CurrentActivityDetailContextProvider({
         });
       });
     },
+    participants: (participants: Participant[]) => {
+      setParticipants(participants);
+    },
   };
 
   const value: CurrentActivityDetailContextType = {

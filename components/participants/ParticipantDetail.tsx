@@ -42,20 +42,24 @@ export default function ParticipantDetails({
         setExpenseBreakdown(result);
       }
     );
+  }, [participantId]);
+
+  useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={() => setOnEditParticipant(true)}>
+        <TouchableOpacity onPress={() => handleDeleteParticipant()}>
           <FontAwesome name="trash-o" size={24} color={Colors.Background} />
         </TouchableOpacity>
       ),
     });
-  }, []);
+  }, [navigation, expenseBreakdown]);
 
   function handleEditParticipantName() {
     setOnEditParticipant(true);
     setEditingParticipantName(participant.name);
   }
   async function handleUpdateParticipantName() {
+    // No need to wrap in transaction because update participant name do not need to recalculate pay/owed
     await DB.update("participants", participantId, {
       name: editingParticipantName,
     });
@@ -68,6 +72,27 @@ export default function ParticipantDetails({
     await updateActivity(participant.activityId);
 
     setOnEditParticipant(false);
+  }
+
+  async function handleDeleteParticipant() {
+    if (expenseBreakdown.some((expense) => expense.youPaid > 0)) {
+      alert(
+        `${participant.name} paid for some expenses. Delete or reassign payer first`
+      );
+      return;
+    }
+    await DB.transaction(async () => {
+      await DB.delete("participants", participantId);
+    });
+    await updateActivity(participant.activityId);
+
+    // refetch participants detail because the aggregated value has changed
+    const newParticipantList = await DB.get("participants", {
+      activity_id: ["=", participant.activityId],
+    });
+    update.participants(newParticipantList.map((a: any) => new Participant(a)));
+
+    navigation.goBack();
   }
 
   const tableData = {

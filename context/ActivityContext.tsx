@@ -147,7 +147,9 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
    */
   const remove = async (activity: Activity): Promise<any> => {
     try {
-      await DB.delete("activities", activity.id);
+      await DB.transaction(async () => {
+        await DB.delete("activities", activity.id);
+      });
       dispatch({ type: "REMOVE_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error removing activity:", error);
@@ -177,7 +179,9 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const modify = async (activity: Activity): Promise<Activity> => {
     try {
       dispatch({ type: "UPDATE_ACTIVITY", payload: activity });
-      await DB.update("activities", activity.id, activity.toEntity());
+      await DB.transaction(async () => {
+        await DB.update("activities", activity.id, activity.toEntity());
+      });
       return activity;
     } catch (error) {
       console.error("Error modifying activity:", error);

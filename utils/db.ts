@@ -16,6 +16,8 @@ interface IDatabaseAdapter {
     delete(table: string, id: string): Promise<void>;
 }
 
+type ActionType = "insert" | "update" | "delete" | "select"
+
 /**
  * DB class
  * Manages database operations and listeners for specific actions (insert, update) on tables.
@@ -29,10 +31,12 @@ export class DB {
         [table: string]: {
             insert: Function[];
             update: Function[];
+            delete: Function[];
+            select: Function[];
         };
     } = {};
 
-    private static pendingNotifications: { table: string; action: "insert" | "update"; payload: any }[] = [];
+    private static pendingNotifications: { table: string; action: ActionType; payload: any }[] = [];
 
     /**
      * Sets the database adapter to use for database operations.
@@ -163,30 +167,45 @@ export class DB {
      */
     public static async delete(table: string, id: string): Promise<void> {
         console.log(`Table ${table} DELETE ${id}`);
-        DB.adapter.delete(table, id);
+        const deleted = await DB.adapter.delete(table, id);
+        console.log('deleted is: ', deleted)
+
+        // Queue the notification instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'delete',
+            payload: deleted
+        });
     }
 
     /**
      * Registers a listener for a specific action (insert or update) for a table.
      * 
      * @param table - The table to register the listener for.
-     * @param action - The action type, either 'insert' or 'update'.
+     * @param action - The action type, either 'insert', 'update', 'select', 'delete'.
      * @param listener - The listener function to register.
      */
-    static register(table: string, action: "insert" | "update", listener: Function) {
+    static register(table: string, action: ActionType | ActionType[], listener: Function) {
         if (!DB.listeners[table]) {
-            DB.listeners[table] = { insert: [], update: [] };
+            DB.listeners[table] = { insert: [], update: [], delete: [], select: [] };
         }
-        DB.listeners[table][action].push(listener); // Add the listener for the specific action
+
+        if (Array.isArray(action)) {
+            for (const a of action) {
+                DB.listeners[table][a].push(listener); // Add the listener for the specific action
+            }
+        } else {
+            DB.listeners[table][action].push(listener); // Add the listener for the specific action
+        }
     }
 
     /**
      * Notifies listeners for a specific action (insert or update) for the given table.
      * 
      * @param table - The table whose listeners should be notified.
-     * @param action - The action type, either 'insert' or 'update'.
+     * @param action - The action type, either 'insert', 'update', 'select', 'delete'
      */
-    static async notify(table: string, action: "insert" | "update", payload?: any) {
+    static async notify(table: string, action: ActionType, payload?: any) {
         const tableListeners = DB.listeners[table]?.[action];
         if (tableListeners) {
             for (const listener of tableListeners) {

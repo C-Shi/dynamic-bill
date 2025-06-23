@@ -191,7 +191,9 @@ export class SQLiteAdapter {
      * @returns Promise resolving to query result
      */
     public static async delete(table: string, id: string): Promise<any> {
+        const toBeDeleted = await this.first(`SELECT * FROM ${table} WHERE id = ?`, [id]);
         const query = `DELETE FROM ${table} WHERE id = ?`;
-        return await this.query(query, [id])
+        await this.query(query, [id])
+        return toBeDeleted;
     }
 }

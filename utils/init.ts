@@ -19,10 +19,10 @@ export async function init() {
         );
     });
 
-    DB.register("participants", "insert", (payload: any) => {
-        const aid = Array.isArray(payload)
+    DB.register("participants", ["insert", "delete"], (payload: any) => {
+        const aid = (Array.isArray(payload)
             ? payload[0].activity_id
-            : payload.activity_id;
+            : payload.activity_id);
         DB.query(
             `
           UPDATE participants SET
