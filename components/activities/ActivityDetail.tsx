@@ -79,11 +79,15 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     rows: expenses.map((e: any) => {
       return {
         values: [
-          e.description,
+          `👉 ${e.description}`,
           dollar(e.amount),
           participants.find((p: Participant) => p.id === e.paidBy)?.name ||
             "Unknown",
         ],
+        styles: [{ textAlign: "left", marginLeft: 10 }],
+        onPress: () => {
+          router.push(`/activities/${activity.id}/expenses/${e.id}`);
+        },
       };
     }),
   };
