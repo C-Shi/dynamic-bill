@@ -11,6 +11,7 @@ import {
   Pressable,
   ScrollView,
   Switch,
+  Alert,
 } from "react-native";
 import Colors from "@/constant/Color";
 import { ActivityContext } from "@/context/ActivityContext";
@@ -69,7 +70,7 @@ export default function AddParticipant({
   // Validate input and update database with new participant
   async function onAddParticipant() {
     if (!participantName) {
-      alert("Please add a name");
+      Alert.alert("Please add a name");
       return;
     }
 
@@ -80,7 +81,7 @@ export default function AddParticipant({
     );
 
     if (duplicate) {
-      alert("Duplicate participant!!");
+      Alert.alert("Duplicate participant!!");
       return;
     }
 
@@ -108,7 +109,7 @@ export default function AddParticipant({
         }
       });
     } catch (e) {
-      alert("Unable to save participant");
+      Alert.alert("Unable to save participant");
     } finally {
       await set(activity.id);
       await update(activity.id);

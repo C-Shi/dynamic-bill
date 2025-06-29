@@ -9,6 +9,7 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Alert,
 } from "react-native";
 import Colors from "@/constant/Color";
 import {
@@ -97,22 +98,22 @@ export default function NewExpense({
   // Validate all required fields are filled
   function validated() {
     if (!newExpense.description) {
-      alert("Expense need description");
+      Alert.alert("Expense need description");
       return false;
     }
 
     if (!newExpense.amount || !parseFloat(newExpense.amount)) {
-      alert("Expense need amount");
+      Alert.alert("Expense need amount");
       return false;
     }
 
     if (!newExpense.paidBy) {
-      alert("Select who paid for this expense");
+      Alert.alert("Select who paid for this expense");
       return false;
     }
 
     if (newExpenseFor.length === 0) {
-      alert("Expense has to be paid for at least one person");
+      Alert.alert("Expense has to be paid for at least one person");
       return false;
     }
 
@@ -143,7 +144,7 @@ export default function NewExpense({
         await DB.insert("participant_expenses", peData);
       });
     } catch (e) {
-      alert("Add Expense Failed");
+      Alert.alert("Add Expense Failed");
     } finally {
       await set(activity.id);
       await update(activity.id);

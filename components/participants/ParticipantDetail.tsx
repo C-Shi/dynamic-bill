@@ -5,6 +5,7 @@ import React, {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from "react-native";
 import Colors from "@/constant/Color";
 import DataTable from "@/components/shared/DataTable";
@@ -76,23 +77,38 @@ export default function ParticipantDetails({
 
   async function handleDeleteParticipant() {
     if (expenseBreakdown.some((expense) => expense.youPaid > 0)) {
-      alert(
-        `${participant.name} paid for some expenses. Delete or reassign payer first`
+      Alert.alert(
+        `${participant.name} paid for some expenses.`,
+        "Delete or reassign payer first"
       );
       return;
+    } else {
+      Alert.alert(`Delete ${participant.name}?`, "", [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await DB.transaction(async () => {
+              await DB.delete("participants", participantId);
+            });
+            await updateActivity(participant.activityId);
+
+            // refetch participants detail because the aggregated value has changed
+            const newParticipantList = await DB.get("participants", {
+              activity_id: ["=", participant.activityId],
+            });
+            update.participants(
+              newParticipantList.map((a: any) => new Participant(a))
+            );
+
+            navigation.goBack();
+          },
+        },
+      ]);
     }
-    await DB.transaction(async () => {
-      await DB.delete("participants", participantId);
-    });
-    await updateActivity(participant.activityId);
-
-    // refetch participants detail because the aggregated value has changed
-    const newParticipantList = await DB.get("participants", {
-      activity_id: ["=", participant.activityId],
-    });
-    update.participants(newParticipantList.map((a: any) => new Participant(a)));
-
-    navigation.goBack();
   }
 
   const tableData = {

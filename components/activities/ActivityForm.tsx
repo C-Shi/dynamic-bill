@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from "react-native";
 import TouchableCard from "@/components/shared/TouchableCard";
 
@@ -127,7 +128,7 @@ export default function ActivityForm({
 
     const capArr = participants!.map((p: string) => p.toUpperCase());
     if (capArr.includes(newParticipant.trim().toUpperCase())) {
-      alert("Duplicate Participant");
+      Alert.alert("Duplicate Participant");
       setNewParticipant("");
       return;
     }

@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Activity } from "@/model/Activity";
 import { DB } from "@/utils/db";
 import { Participant } from "@/model/Participant";
+import { Alert } from "react-native";
 
 /**
  * Type definition for the Activity Context
@@ -137,7 +138,7 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "ADD_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error adding activity:", error);
-      alert("Error adding activity");
+      Alert.alert("Error adding activity");
     }
   };
 
