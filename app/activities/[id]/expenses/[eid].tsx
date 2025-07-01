@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
-import { Text } from "react-native";
 import { useNavigation, useLocalSearchParams } from "expo-router";
+import ExpenseDetail from "@/components/expenses/ExpenseDetail";
 
 export default function ExpenseDetailsPage() {
   const { eid } = useLocalSearchParams();
-  const expenseId = eid as string;
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -13,5 +12,5 @@ export default function ExpenseDetailsPage() {
     });
   });
 
-  return <Text>This is Expense Detail page {expenseId}</Text>;
+  return <ExpenseDetail eid={eid as string}></ExpenseDetail>;
 }
