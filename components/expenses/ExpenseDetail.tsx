@@ -1,19 +1,63 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
-import Colors from "@/constant/Color";
+import Colors, { ColorSet } from "@/constant/Color";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { PieChart } from "react-native-gifted-charts";
 import ProgressBar from "@/components/shared/ProgressBar";
+import { ActivityContext } from "@/context/ActivityContext";
+import { EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY } from "@/constant/Query";
+import { DB } from "@/utils/db";
+import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
+import { dollar } from "@/utils/Helper";
 
-export default function ExpenseDetail({ eid }: { eid: string }) {
-  const pieData = [
-    { value: 25, color: "#177AD5", name: "Michael Chen" },
-    { value: 25, color: "#79D2DE", name: "Sarah Johnson" },
-    { value: 25, color: "#ED6665", name: "David Wilson" },
-    { value: 25, color: "#F39C12", name: "Emily Rodriguez" },
-  ];
+type EP = {
+  value: number;
+  color: string;
+  name: string;
+  isPayer: boolean;
+};
 
-  const legends = pieData.map((dataPoint, i) => {
+export default function ExpenseDetail({
+  aid,
+  eid,
+}: {
+  aid: string;
+  eid: string;
+}) {
+  const { get } = useContext(ActivityContext);
+  const { expenses } = useContext(CurrentActivityDetailContext);
+  const currentExpense = expenses.find((e) => e.id === eid)!;
+
+  /** check if the current Expense is the biggest expense */
+  const isMax = expenses.every((obj) => {
+    if (obj.id === eid) return true;
+    const target = expenses.find((o) => o.id === eid);
+    return obj.amount <= target!.amount;
+  });
+  const activity = get(aid)!;
+  const [expenseBreakdown, setExpenseBreakdown] = useState<EP[]>([]);
+
+  useEffect(() => {
+    DB.query(EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY, [eid]).then(
+      (result) => {
+        const dataColorSet = ColorSet.newSet(result.length);
+        setExpenseBreakdown(() => {
+          return result.map((ep: any, i: number) => {
+            return {
+              value: currentExpense.amount / result.length,
+              color: dataColorSet[i],
+              name: ep.name,
+              isPayer: Boolean(ep.payer),
+            };
+          });
+        });
+      }
+    );
+  }, []);
+
+  const payer = expenseBreakdown.find((ep: EP) => ep.isPayer === true);
+
+  const legends = expenseBreakdown.map((dataPoint: EP, i) => {
     return (
       <View key={i} style={styles.legendLine}>
         <View style={styles.flexRow}>
@@ -23,7 +67,7 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
           <Text>{dataPoint.name}</Text>
         </View>
         <View>
-          <Text>${dataPoint.value}.00</Text>
+          <Text>{dollar(dataPoint.value)}</Text>
         </View>
       </View>
     );
@@ -32,11 +76,13 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
     <ScrollView style={styles.container}>
       {/* Summary container  */}
       <View style={styles.summaryContainer}>
-        <Text style={styles.expenseName}>Team Dinner at Osteria</Text>
-        <Text style={styles.expenseAmount}>$248.75</Text>
+        <Text style={styles.expenseName}>{currentExpense.description}</Text>
+        <Text style={styles.expenseAmount}>
+          {dollar(currentExpense.amount)}
+        </Text>
         <View style={styles.flexRow}>
           <FontAwesome name="users" size={16} color={Colors.SubText} />
-          <Text style={styles.expensePayer}> Expense for 6 people</Text>
+          <Text style={styles.expensePayer}>&nbsp;{activity.title}</Text>
         </View>
         <View style={styles.flexRow}>
           <Ionicons
@@ -44,7 +90,7 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
             size={18}
             color={Colors.SubText}
           />
-          <Text style={styles.expensePayer}> Paid My Michael Chen</Text>
+          <Text style={styles.expensePayer}> Paid by {payer?.name}</Text>
         </View>
       </View>
 
@@ -54,7 +100,7 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
         <View style={styles.graphChartContainer}>
           <PieChart
             donut
-            data={pieData}
+            data={expenseBreakdown}
             radius={90}
             innerRadius={50}
           ></PieChart>
@@ -68,10 +114,12 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
         <View>
           <View style={styles.progressBarTitleLine}>
             <Text style={{ fontSize: 13 }}>Payer's portion</Text>
-            <Text style={{ fontSize: 13, fontWeight: 600 }}>$41.48</Text>
+            <Text style={{ fontSize: 13, fontWeight: 600 }}>
+              {dollar(currentExpense.amount / expenseBreakdown.length)}
+            </Text>
           </View>
           <ProgressBar
-            percentage="50%"
+            percentage={100 / expenseBreakdown.length + "%"}
             frontColor={Colors.Primary}
           ></ProgressBar>
         </View>
@@ -81,7 +129,11 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
             <Text
               style={{ fontSize: 13, fontWeight: 600, color: Colors.Success }}
             >
-              +$207.29
+              +
+              {dollar(
+                currentExpense.amount -
+                  currentExpense.amount / expenseBreakdown.length
+              )}
             </Text>
           </View>
           <ProgressBar
@@ -96,7 +148,8 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
             color={Colors.Primary}
           />
           <Text style={{ lineHeight: 24 }}>
-            &nbsp; You paid for 6 people in this expense
+            &nbsp; {payer?.name} paid for {expenseBreakdown.length - 1} more
+            people
           </Text>
         </View>
       </View>
@@ -111,32 +164,65 @@ export default function ExpenseDetail({ eid }: { eid: string }) {
         </View>
 
         {/* Budget or total expense impact */}
+        {activity.budget && (
+          <View style={styles.insightDetailContainer}>
+            <View style={[styles.flexRow, { justifyContent: "space-between" }]}>
+              <Text style={{ color: Colors.SubText, fontWeight: 500 }}>
+                Budget Impact
+              </Text>
+              <Text style={{ fontWeight: 600 }}>
+                {((currentExpense.amount / activity.budget) * 100).toPrecision(
+                  3
+                )}
+                %
+              </Text>
+            </View>
+            <ProgressBar
+              percentage={(currentExpense.amount / activity.budget) * 100 + "%"}
+              frontColor={Colors.Primary}
+            ></ProgressBar>
+            <Text style={{ fontSize: 12, color: Colors.SubText }}>
+              This expense represents{" "}
+              {((currentExpense.amount / activity.budget) * 100).toPrecision(3)}
+              % of the "{activity.title}" budget
+            </Text>
+          </View>
+        )}
+
+        {/* Total expense impact */}
         <View style={styles.insightDetailContainer}>
           <View style={[styles.flexRow, { justifyContent: "space-between" }]}>
             <Text style={{ color: Colors.SubText, fontWeight: 500 }}>
-              Budget Impact
+              Spending Share
             </Text>
-            <Text style={{ fontWeight: 600 }}>24%</Text>
+            <Text style={{ fontWeight: 600 }}>
+              {((currentExpense.amount / activity.totals) * 100).toPrecision(3)}
+              %
+            </Text>
           </View>
           <ProgressBar
-            percentage="24%"
-            frontColor={Colors.Primary}
+            percentage={(currentExpense.amount / activity.totals) * 100 + "%"}
+            frontColor={Colors.Success}
           ></ProgressBar>
           <Text style={{ fontSize: 12, color: Colors.SubText }}>
-            This expense represents 24% of the "Team Building Q2" budget
+            This expense represents{" "}
+            {((currentExpense.amount / activity.totals) * 100).toPrecision(3)}%
+            of the "{activity.title}" spending
           </Text>
         </View>
 
         {/* Largest Expense */}
-        <View style={[styles.flexRow, styles.insightDetailContainer]}>
-          <Ionicons name="trophy-sharp" size={28} color={Colors.Secondary} />
-          <View>
-            <Text style={{ fontWeight: 500 }}>&nbsp;Largest Expense</Text>
-            <Text style={{ fontSize: 12, color: Colors.SubText }}>
-              &nbsp;This is the largest expense in this activity
-            </Text>
+        {isMax && (
+          <View style={[styles.flexRow, styles.insightDetailContainer]}>
+            <Ionicons name="trophy-sharp" size={28} color={Colors.Secondary} />
+            <View>
+              <Text style={{ fontWeight: 500 }}>&nbsp;Largest Expense</Text>
+              <Text style={{ fontSize: 12, color: Colors.SubText }}>
+                &nbsp;This is the largest expense in this activity
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </ScrollView>
   );

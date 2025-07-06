@@ -35,4 +35,15 @@ const EXPENSE_BREAKDOWN_QUERY = `
         LEFT JOIN expense_portion p ON ei.id = p.expense_id;
         `
 
-export { EXPENSE_BREAKDOWN_QUERY }
+const EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY = `
+    SELECT participants.name,
+    CASE
+        WHEN (participants.id = expenses.paid_by) THEN 1
+        ELSE 0
+    END AS payer FROM expenses
+    JOIN participant_expenses ON expenses.id = participant_expenses.expense_id
+    JOIN participants ON participant_expenses.participant_id = participants.id
+    WHERE expenses.id = ?;
+`
+
+export { EXPENSE_BREAKDOWN_QUERY, EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY }
