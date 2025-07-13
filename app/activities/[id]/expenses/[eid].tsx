@@ -10,7 +10,7 @@ export default function ExpenseDetailsPage() {
     navigation.setOptions({
       title: "Expense Details",
     });
-  }, []);
+  }, [eid]);
 
-  return <ExpenseDetail aid={id as string} eid={eid as string}></ExpenseDetail>;
+  return <ExpenseDetail aid={id as string} eid={eid as string} />;
 }

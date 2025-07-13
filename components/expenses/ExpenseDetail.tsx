@@ -1,5 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ScrollView, View, Text, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { PieChart } from "react-native-gifted-charts";
@@ -9,6 +16,10 @@ import { EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY } from "@/constant/Query";
 import { DB } from "@/utils/db";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { dollar } from "@/utils/Helper";
+import { useNavigation } from "expo-router";
+import { PaperProvider, Menu } from "react-native-paper";
+import { Participant } from "@/model/Participant";
+import { Expense } from "@/model/Expense";
 
 type EP = {
   value: number;
@@ -24,9 +35,10 @@ export default function ExpenseDetail({
   aid: string;
   eid: string;
 }) {
-  const { get } = useContext(ActivityContext);
-  const { expenses } = useContext(CurrentActivityDetailContext);
+  const { get, update: updateActivity } = useContext(ActivityContext);
+  const { expenses, update } = useContext(CurrentActivityDetailContext);
   const currentExpense = expenses.find((e) => e.id === eid)!;
+  const navigation = useNavigation();
 
   /** check if the current Expense is the biggest expense */
   const isMax = expenses.every((obj) => {
@@ -35,6 +47,8 @@ export default function ExpenseDetail({
     return obj.amount <= target!.amount;
   });
   const activity = get(aid)!;
+  const [anchorCoords, setAnchorCoords] = useState({ x: 0, y: 0 });
+  const [menuVisible, setMenuVisible] = useState(false);
   const [expenseBreakdown, setExpenseBreakdown] = useState<EP[]>([]);
 
   useEffect(() => {
@@ -55,6 +69,44 @@ export default function ExpenseDetail({
     );
   }, []);
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={(event) => {
+            const topOffset = Platform.OS === "ios" ? 80 : 56;
+            const { pageX, pageY } = event.nativeEvent;
+            setAnchorCoords({ x: pageX + 10, y: pageY - topOffset });
+            setMenuVisible((prev) => !prev);
+          }}
+        >
+          <Ionicons name="reorder-three" size={24} color={Colors.Background} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [eid]);
+
+  async function deleteExpense() {
+    await DB.transaction(async () => {
+      await DB.delete("expenses", eid as string);
+    });
+    await updateActivity(aid);
+
+    // refetch participants detail because the aggregated value has changed
+    const newParticipantList = await DB.get("participants", {
+      activity_id: ["=", aid],
+    });
+    update.participants(newParticipantList.map((a: any) => new Participant(a)));
+
+    // refetch expenses list
+    const newExpenseList = await DB.get("expenses", {
+      activity_id: ["=", aid],
+    });
+    update.expenses(newExpenseList.map((a: any) => new Expense(a)));
+
+    navigation.goBack();
+  }
+
   const payer = expenseBreakdown.find((ep: EP) => ep.isPayer === true);
 
   const legends = expenseBreakdown.map((dataPoint: EP, i) => {
@@ -73,158 +125,184 @@ export default function ExpenseDetail({
     );
   });
   return (
-    <ScrollView style={styles.container}>
-      {/* Summary container  */}
-      <View style={styles.summaryContainer}>
-        <Text style={styles.expenseName}>{currentExpense.description}</Text>
-        <Text style={styles.expenseAmount}>
-          {dollar(currentExpense.amount)}
-        </Text>
-        <View style={styles.flexRow}>
-          <FontAwesome name="users" size={16} color={Colors.SubText} />
-          <Text style={styles.expensePayer}>&nbsp;{activity.title}</Text>
+    <PaperProvider>
+      <ScrollView style={styles.container}>
+        {/** Floating menu dropdown */}
+        <View style={{ flex: 1 }}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={anchorCoords}
+          >
+            <Menu.Item onPress={() => {}} title="Edit Expense" />
+            <Menu.Item onPress={deleteExpense} title="Delete" />
+          </Menu>
         </View>
-        <View style={styles.flexRow}>
-          <Ionicons
-            name="person-circle-outline"
-            size={18}
-            color={Colors.SubText}
-          />
-          <Text style={styles.expensePayer}> Paid by {payer?.name}</Text>
+        {/* Summary container  */}
+        <View style={styles.summaryContainer}>
+          <Text style={styles.expenseName}>{currentExpense.description}</Text>
+          <Text style={styles.expenseAmount}>
+            {dollar(currentExpense.amount)}
+          </Text>
+          <View style={styles.flexRow}>
+            <FontAwesome name="users" size={16} color={Colors.SubText} />
+            <Text style={styles.expensePayer}>&nbsp;{activity.title}</Text>
+          </View>
+          <View style={styles.flexRow}>
+            <Ionicons
+              name="person-circle-outline"
+              size={18}
+              color={Colors.SubText}
+            />
+            <Text style={styles.expensePayer}> Paid by {payer?.name}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* graph container */}
-      <View style={styles.graphContainer}>
-        <Text style={styles.graphTitle}>Who's included</Text>
-        <View style={styles.graphChartContainer}>
-          <PieChart
-            donut
-            data={expenseBreakdown}
-            radius={90}
-            innerRadius={50}
-          ></PieChart>
+        {/* graph container */}
+        <View style={styles.graphContainer}>
+          <Text style={styles.graphTitle}>Who's included</Text>
+          <View style={styles.graphChartContainer}>
+            <PieChart
+              donut
+              data={expenseBreakdown}
+              radius={90}
+              innerRadius={50}
+            ></PieChart>
+          </View>
+          <View>{legends}</View>
         </View>
-        <View>{legends}</View>
-      </View>
 
-      {/* Payment Breakdown container */}
-      <View style={styles.paymentBreakdownContainer}>
-        <Text style={styles.graphTitle}>Payment Breakdown</Text>
-        <View>
-          <View style={styles.progressBarTitleLine}>
-            <Text style={{ fontSize: 13 }}>Payer's portion</Text>
-            <Text style={{ fontSize: 13, fontWeight: 600 }}>
-              {dollar(currentExpense.amount / expenseBreakdown.length)}
+        {/* Payment Breakdown container */}
+        <View style={styles.paymentBreakdownContainer}>
+          <Text style={styles.graphTitle}>Payment Breakdown</Text>
+          <View>
+            <View style={styles.progressBarTitleLine}>
+              <Text style={{ fontSize: 13 }}>Payer's portion</Text>
+              <Text style={{ fontSize: 13, fontWeight: 600 }}>
+                {dollar(currentExpense.amount / expenseBreakdown.length)}
+              </Text>
+            </View>
+            <ProgressBar
+              percentage={100 / expenseBreakdown.length + "%"}
+              frontColor={Colors.Primary}
+            ></ProgressBar>
+          </View>
+          <View>
+            <View style={styles.progressBarTitleLine}>
+              <Text style={{ fontSize: 13 }}>Payer's overpaid</Text>
+              <Text
+                style={{ fontSize: 13, fontWeight: 600, color: Colors.Success }}
+              >
+                +
+                {dollar(
+                  currentExpense.amount -
+                    currentExpense.amount / expenseBreakdown.length
+                )}
+              </Text>
+            </View>
+            <ProgressBar
+              percentage="100%"
+              frontColor={Colors.Success}
+            ></ProgressBar>
+          </View>
+          <View style={styles.overpayExplainContainer}>
+            <Ionicons
+              name="information-circle"
+              size={24}
+              color={Colors.Primary}
+            />
+            <Text style={{ lineHeight: 24 }}>
+              &nbsp; {payer?.name} paid for {expenseBreakdown.length - 1} more
+              people
             </Text>
           </View>
-          <ProgressBar
-            percentage={100 / expenseBreakdown.length + "%"}
-            frontColor={Colors.Primary}
-          ></ProgressBar>
         </View>
-        <View>
-          <View style={styles.progressBarTitleLine}>
-            <Text style={{ fontSize: 13 }}>Payer's overpaid</Text>
-            <Text
-              style={{ fontSize: 13, fontWeight: 600, color: Colors.Success }}
-            >
-              +
-              {dollar(
-                currentExpense.amount -
-                  currentExpense.amount / expenseBreakdown.length
-              )}
+
+        {/* Expense Insights container */}
+        <View style={styles.insightContainer}>
+          <View style={styles.flexRow}>
+            <FontAwesome name="pie-chart" size={24} color={Colors.Primary} />
+            <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: 500 }}>
+              &nbsp;Expense Insights
             </Text>
           </View>
-          <ProgressBar
-            percentage="100%"
-            frontColor={Colors.Success}
-          ></ProgressBar>
-        </View>
-        <View style={styles.overpayExplainContainer}>
-          <Ionicons
-            name="information-circle"
-            size={24}
-            color={Colors.Primary}
-          />
-          <Text style={{ lineHeight: 24 }}>
-            &nbsp; {payer?.name} paid for {expenseBreakdown.length - 1} more
-            people
-          </Text>
-        </View>
-      </View>
 
-      {/* Expense Insights container */}
-      <View style={styles.insightContainer}>
-        <View style={styles.flexRow}>
-          <FontAwesome name="pie-chart" size={24} color={Colors.Primary} />
-          <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: 500 }}>
-            &nbsp;Expense Insights
-          </Text>
-        </View>
+          {/* Budget or total expense impact */}
+          {activity.budget && (
+            <View style={styles.insightDetailContainer}>
+              <View
+                style={[styles.flexRow, { justifyContent: "space-between" }]}
+              >
+                <Text style={{ color: Colors.SubText, fontWeight: 500 }}>
+                  Budget Impact
+                </Text>
+                <Text style={{ fontWeight: 600 }}>
+                  {(
+                    (currentExpense.amount / activity.budget) *
+                    100
+                  ).toPrecision(3)}
+                  %
+                </Text>
+              </View>
+              <ProgressBar
+                percentage={
+                  (currentExpense.amount / activity.budget) * 100 + "%"
+                }
+                frontColor={Colors.Primary}
+              ></ProgressBar>
+              <Text style={{ fontSize: 12, color: Colors.SubText }}>
+                This expense represents{" "}
+                {((currentExpense.amount / activity.budget) * 100).toPrecision(
+                  3
+                )}
+                % of the "{activity.title}" budget
+              </Text>
+            </View>
+          )}
 
-        {/* Budget or total expense impact */}
-        {activity.budget && (
+          {/* Total expense impact */}
           <View style={styles.insightDetailContainer}>
             <View style={[styles.flexRow, { justifyContent: "space-between" }]}>
               <Text style={{ color: Colors.SubText, fontWeight: 500 }}>
-                Budget Impact
+                Spending Share
               </Text>
               <Text style={{ fontWeight: 600 }}>
-                {((currentExpense.amount / activity.budget) * 100).toPrecision(
+                {((currentExpense.amount / activity.totals) * 100).toPrecision(
                   3
                 )}
                 %
               </Text>
             </View>
             <ProgressBar
-              percentage={(currentExpense.amount / activity.budget) * 100 + "%"}
-              frontColor={Colors.Primary}
+              percentage={(currentExpense.amount / activity.totals) * 100 + "%"}
+              frontColor={Colors.Success}
             ></ProgressBar>
             <Text style={{ fontSize: 12, color: Colors.SubText }}>
               This expense represents{" "}
-              {((currentExpense.amount / activity.budget) * 100).toPrecision(3)}
-              % of the "{activity.title}" budget
-            </Text>
-          </View>
-        )}
-
-        {/* Total expense impact */}
-        <View style={styles.insightDetailContainer}>
-          <View style={[styles.flexRow, { justifyContent: "space-between" }]}>
-            <Text style={{ color: Colors.SubText, fontWeight: 500 }}>
-              Spending Share
-            </Text>
-            <Text style={{ fontWeight: 600 }}>
               {((currentExpense.amount / activity.totals) * 100).toPrecision(3)}
-              %
+              % of the "{activity.title}" spending
             </Text>
           </View>
-          <ProgressBar
-            percentage={(currentExpense.amount / activity.totals) * 100 + "%"}
-            frontColor={Colors.Success}
-          ></ProgressBar>
-          <Text style={{ fontSize: 12, color: Colors.SubText }}>
-            This expense represents{" "}
-            {((currentExpense.amount / activity.totals) * 100).toPrecision(3)}%
-            of the "{activity.title}" spending
-          </Text>
-        </View>
 
-        {/* Largest Expense */}
-        {isMax && (
-          <View style={[styles.flexRow, styles.insightDetailContainer]}>
-            <Ionicons name="trophy-sharp" size={28} color={Colors.Secondary} />
-            <View>
-              <Text style={{ fontWeight: 500 }}>&nbsp;Largest Expense</Text>
-              <Text style={{ fontSize: 12, color: Colors.SubText }}>
-                &nbsp;This is the largest expense in this activity
-              </Text>
+          {/* Largest Expense */}
+          {isMax && (
+            <View style={[styles.flexRow, styles.insightDetailContainer]}>
+              <Ionicons
+                name="trophy-sharp"
+                size={28}
+                color={Colors.Secondary}
+              />
+              <View>
+                <Text style={{ fontWeight: 500 }}>&nbsp;Largest Expense</Text>
+                <Text style={{ fontSize: 12, color: Colors.SubText }}>
+                  &nbsp;This is the largest expense in this activity
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          )}
+        </View>
+      </ScrollView>
+    </PaperProvider>
   );
 }
 

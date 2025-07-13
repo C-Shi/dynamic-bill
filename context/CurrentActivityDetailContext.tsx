@@ -21,6 +21,16 @@ type AddOperations = {
 };
 
 /**
+ * Type definition for update operations in the context
+ */
+type UpdateOperations = {
+  participants: (participants: Participant[]) => void;
+  participant: (participant: Participant) => void;
+  expenses: (expenses: Expense[]) => void;
+  expense: (expense: Expense) => void;
+};
+
+/**
  * Type definition for the Current Activity Detail Context
  * Provides methods and state for managing the currently selected activity's details
  */
@@ -38,7 +48,7 @@ type CurrentActivityDetailContextType = {
   add: AddOperations;
 
   /** Operations of updating participants and expenses */
-  update: any;
+  update: UpdateOperations;
 
   /** Set the current activity and load its details */
   set: (id: string) => Promise<void>;
@@ -141,6 +151,19 @@ export function CurrentActivityDetailContextProvider({
     },
     participants: (participants: Participant[]) => {
       setParticipants(participants);
+    },
+    expenses: (expenses: Expense[]) => {
+      setExpenses(expenses);
+    },
+    expense: (expense: Expense) => {
+      setExpenses((prev: Expense[]) => {
+        return prev.map((e) => {
+          if (e.id !== expense.id) {
+            return e;
+          }
+          return expense;
+        });
+      });
     },
   };
 
