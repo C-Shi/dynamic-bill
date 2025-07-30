@@ -75,7 +75,6 @@ const MIGRATIONS = [
                     ); 
                 `)
             })
-            console.log("Migrated to version 1")
         },
         down: async () => {
             // Rollback migration 1: Drops all tables and removes migration record
@@ -117,7 +116,6 @@ const MIGRATIONS = [
                     ('Other', 'Other activity not listed', '❓');
                 `)
             })
-            console.log("Migrated to version 2")
         },
         down: async () => {
             // Rollback migration 2: Removes all activity types

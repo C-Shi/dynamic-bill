@@ -16,7 +16,7 @@ import { EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY } from "@/constant/Query";
 import { DB } from "@/utils/db";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { dollar } from "@/utils/Helper";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { PaperProvider, Menu } from "react-native-paper";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
@@ -67,7 +67,7 @@ export default function ExpenseDetail({
         });
       }
     );
-  }, []);
+  }, [currentExpense]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -134,7 +134,12 @@ export default function ExpenseDetail({
             onDismiss={() => setMenuVisible(false)}
             anchor={anchorCoords}
           >
-            <Menu.Item onPress={() => {}} title="Edit Expense" />
+            <Menu.Item
+              onPress={() =>
+                router.push(`/activities/${aid}/expenses/${eid}/edit`)
+              }
+              title="Edit Expense"
+            />
             <Menu.Item onPress={deleteExpense} title="Delete" />
           </Menu>
         </View>

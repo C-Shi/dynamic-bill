@@ -13,7 +13,7 @@ interface IDatabaseAdapter {
     get(table: string, where?: { [key: string]: [string, string] }): Promise<any[]>;
     insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<any>;
     update(table: string, id: string, data: { [key: string]: string | number }): Promise<any>;
-    delete(table: string, id: string): Promise<void>;
+    delete(table: string, id: string | string[]): Promise<void>;
 }
 
 type ActionType = "insert" | "update" | "delete" | "select"
@@ -93,7 +93,6 @@ export class DB {
      * @returns The result of the query.
      */
     static async query(query: string, params?: any): Promise<any> {
-        console.debug(`Query: ${query} with Params ${params} - DB.query`);
         return DB.adapter.query(query, params);
     }
 
@@ -105,7 +104,6 @@ export class DB {
      * @returns The first result of the query.
      */
     static async first(query: string, params?: any): Promise<any> {
-        console.debug(`Query: ${query} with Params ${params} - DB.first`);
         return DB.adapter.first(query, params);
     }
 
@@ -117,7 +115,6 @@ export class DB {
      * @returns The retrieved records.
      */
     static async get(table: string, where?: { [key: string]: [string, string] }): Promise<any> {
-        console.log(`Table: ${table} - DB.get`);
         return DB.adapter.get(table, where);
     }
 
@@ -129,10 +126,9 @@ export class DB {
      * @returns The result of the insert operation.
      */
     public static async insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<void> {
-        console.log(`Table ${table} - DB.Insert`);
         await DB.adapter.insert(table, data);
 
-        // Queue the notification instead of triggering it immediately
+        // Queue the notificatiion instead of triggering it immediately
         DB.pendingNotifications.push({
             table,
             action: 'insert',
@@ -148,7 +144,6 @@ export class DB {
      * @param data - The data to update.
      */
     public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<void> {
-        console.log(`Table ${table} - DB.Update`);
         await DB.adapter.update(table, id, data);
 
         // Queue the notification instead of triggering it immediately
@@ -165,11 +160,8 @@ export class DB {
      * @param table - The table from which to delete the record.
      * @param id - The ID of the record to delete.
      */
-    public static async delete(table: string, id: string): Promise<void> {
-        console.log(`Table ${table} DELETE ${id}`);
+    public static async delete(table: string, id: string | string[]): Promise<void> {
         const deleted = await DB.adapter.delete(table, id);
-        console.log('deleted is: ', deleted)
-
         // Queue the notification instead of triggering it immediately
         DB.pendingNotifications.push({
             table,

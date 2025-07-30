@@ -24,7 +24,6 @@ export class SQLiteAdapter {
      * Creates all necessary tables if they don't exist
      */
     public static async init(): Promise<void> {
-        console.log("Initializing database")
         const db = await SQLiteAdapter.db();
         if (__DEV__) {
             console.log('Database location:', db.databasePath);
@@ -176,6 +175,7 @@ export class SQLiteAdapter {
     public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<any> {
         const columns = Object.keys(data);
         if (data.id && data.id !== id) {
+            console.error('column id is not editable')
             throw new Error('column id is not editable')
         }
         const placeholders = columns.map((col) => `${col} = ?`).join(", ");
@@ -191,9 +191,13 @@ export class SQLiteAdapter {
      * @returns Promise resolving to query result
      */
     public static async delete(table: string, id: string): Promise<any> {
-        const toBeDeleted = await this.first(`SELECT * FROM ${table} WHERE id = ?`, [id]);
-        const query = `DELETE FROM ${table} WHERE id = ?`;
-        await this.query(query, [id])
+        const ids = Array.isArray(id) ? id : [id];
+        if (ids.length === 0) return []; // early return
+        const placeholders = ids.map(() => '?').join(',');
+
+        const toBeDeleted = await this.first(`SELECT * FROM ${table} WHERE id IN (${placeholders})`, ids);
+        const query = `DELETE FROM ${table} WHERE id IN (${placeholders})`;
+        await this.query(query, ids)
         return toBeDeleted;
     }
 }

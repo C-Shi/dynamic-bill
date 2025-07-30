@@ -32,7 +32,6 @@ export default function NewActivity() {
       let data = { ...newActivity };
       data.participants = participantList;
       data.totals = 0;
-      console.log(data);
       await activityCtx.add(new Activity(data));
       router.back();
     } catch {

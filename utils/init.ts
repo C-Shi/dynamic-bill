@@ -19,7 +19,7 @@ export async function init() {
         );
     });
 
-    DB.register("expenses", "delete", (payload: any) => {
+    DB.register("expenses", ["delete", "update"], (payload: any) => {
         const aid = Array.isArray(payload)
             ? payload[0].activity_id
             : payload.activity_id;
@@ -76,7 +76,7 @@ export async function init() {
         );
     });
 
-    DB.register("participant_expenses", "insert", (payload: any) => {
+    DB.register("participant_expenses", ["insert", "delete"], (payload: any) => {
         const pid = Array.isArray(payload)
             ? payload.map((pe) => pe.participant_id)
             : [payload.participant_id];
