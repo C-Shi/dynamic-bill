@@ -1,10 +1,19 @@
-import UpdateExpense from "@/components/expenses/UpdateExpense";
-import { useLocalSearchParams } from "expo-router";
+import EditExpense from "@/components/expenses/EditExpense";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useEffect } from "react";
 
 function ExpenseEditPage() {
   const { id, eid } = useLocalSearchParams();
 
-  return <UpdateExpense aid={id as string} eid={eid as string}></UpdateExpense>;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: "Edit Expense",
+    });
+  }, [eid]);
+
+  return <EditExpense aid={id as string} eid={eid as string}></EditExpense>;
 }
 
 export default ExpenseEditPage;

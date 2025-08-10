@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Alert,
 } from "react-native";
 import Colors, { ColorSet } from "@/constant/Color";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
@@ -87,24 +88,41 @@ export default function ExpenseDetail({
   }, [eid]);
 
   async function deleteExpense() {
-    await DB.transaction(async () => {
-      await DB.delete("expenses", eid as string);
-    });
-    await updateActivity(aid);
+    Alert.alert(
+      "Delete Expense",
+      "Permenantly delete this expense. All participant's contribution and liability will be recalculated",
+      [
+        {
+          text: "Ask Me Later",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            await DB.transaction(async () => {
+              await DB.delete("expenses", eid as string);
+            });
+            await updateActivity(aid);
 
-    // refetch participants detail because the aggregated value has changed
-    const newParticipantList = await DB.get("participants", {
-      activity_id: ["=", aid],
-    });
-    update.participants(newParticipantList.map((a: any) => new Participant(a)));
+            // refetch participants detail because the aggregated value has changed
+            const newParticipantList = await DB.get("participants", {
+              activity_id: ["=", aid],
+            });
+            update.participants(
+              newParticipantList.map((a: any) => new Participant(a))
+            );
 
-    // refetch expenses list
-    const newExpenseList = await DB.get("expenses", {
-      activity_id: ["=", aid],
-    });
-    update.expenses(newExpenseList.map((a: any) => new Expense(a)));
+            // refetch expenses list
+            const newExpenseList = await DB.get("expenses", {
+              activity_id: ["=", aid],
+            });
+            update.expenses(newExpenseList.map((a: any) => new Expense(a)));
 
-    navigation.goBack();
+            navigation.goBack();
+          },
+        },
+      ]
+    );
   }
 
   const payer = expenseBreakdown.find((ep: EP) => ep.isPayer === true);

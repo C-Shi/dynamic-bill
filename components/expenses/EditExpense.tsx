@@ -24,7 +24,13 @@ import { DB } from "@/utils/db";
 import { ParticipantExpense } from "@/model/ParticipantExpense";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
-export default function NewExpense({ aid, eid }: { aid: string; eid: string }) {
+export default function EditExpense({
+  aid,
+  eid,
+}: {
+  aid: string;
+  eid: string;
+}) {
   const router = useRouter();
   const { set, expenses, participants, update } = useContext(
     CurrentActivityDetailContext
@@ -127,6 +133,9 @@ export default function NewExpense({ aid, eid }: { aid: string; eid: string }) {
 
   // Check expense diff and update
   async function onSubmit() {
+    if (!validated()) {
+      return;
+    }
     // participant expense to add
     const oldIds = oldExpenseFor.map((item) => item.participantId);
     const toAdd: any[] = newExpenseFor
@@ -163,6 +172,7 @@ export default function NewExpense({ aid, eid }: { aid: string; eid: string }) {
       if (__DEV__) {
         console.error(error);
       }
+      Alert.alert("Unexpected Error during update.");
     }
 
     // update ActivityContext with this specific activity
