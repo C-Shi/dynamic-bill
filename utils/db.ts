@@ -7,13 +7,16 @@ interface IDatabaseAdapter {
     db: any;
     init(): Promise<void>;
     seed(): Promise<void>;
+    transaction(callback: () => Promise<void>): Promise<void>;
     query(query: string, params: any[]): Promise<any[]>;
     first(query: string, params: any[]): Promise<any>;
     get(table: string, where?: { [key: string]: [string, string] }): Promise<any[]>;
     insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<any>;
     update(table: string, id: string, data: { [key: string]: string | number }): Promise<any>;
-    delete(table: string, id: string): Promise<void>;
+    delete(table: string, id: string | string[]): Promise<void>;
 }
+
+type ActionType = "insert" | "update" | "delete" | "select"
 
 /**
  * DB class
@@ -28,8 +31,12 @@ export class DB {
         [table: string]: {
             insert: Function[];
             update: Function[];
+            delete: Function[];
+            select: Function[];
         };
     } = {};
+
+    private static pendingNotifications: { table: string; action: ActionType; payload: any }[] = [];
 
     /**
      * Sets the database adapter to use for database operations.
@@ -57,6 +64,28 @@ export class DB {
     }
 
     /**
+     * Executes a transaction on the database
+     * @param callback Callback function to execute within the transaction
+     * @returns Promise resolving to transaction result
+     */
+    static async transaction(callback: () => Promise<void>): Promise<void> {
+        // Clear any pending notifications before starting transaction
+        DB.pendingNotifications = [];
+
+        try {
+            await DB.adapter.transaction(callback);
+
+            // After transaction completes successfully, process all pending notifications
+            for (const notification of DB.pendingNotifications) {
+                await DB.notify(notification.table, notification.action, notification.payload);
+            }
+        } finally {
+            // Clear pending notifications even if transaction fails
+            DB.pendingNotifications = [];
+        }
+    }
+
+    /**
      * Executes a query with the provided parameters.
      * 
      * @param query - The query string to execute.
@@ -64,7 +93,6 @@ export class DB {
      * @returns The result of the query.
      */
     static async query(query: string, params?: any): Promise<any> {
-        console.debug(`Query: ${query} with Params ${params} - DB.query`);
         return DB.adapter.query(query, params);
     }
 
@@ -76,7 +104,6 @@ export class DB {
      * @returns The first result of the query.
      */
     static async first(query: string, params?: any): Promise<any> {
-        console.debug(`Query: ${query} with Params ${params} - DB.first`);
         return DB.adapter.first(query, params);
     }
 
@@ -88,7 +115,6 @@ export class DB {
      * @returns The retrieved records.
      */
     static async get(table: string, where?: { [key: string]: [string, string] }): Promise<any> {
-        console.log(`Table: ${table} - DB.get`);
         return DB.adapter.get(table, where);
     }
 
@@ -100,9 +126,14 @@ export class DB {
      * @returns The result of the insert operation.
      */
     public static async insert(table: string, data: { [key: string]: string | number } | { [key: string]: string | number }[]): Promise<void> {
-        console.log(`Table ${table} - DB.Insert`);
         await DB.adapter.insert(table, data);
-        DB.notify(table, 'insert', data); // Notify listeners about the insert operation
+
+        // Queue the notificatiion instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'insert',
+            payload: data
+        });
     }
 
     /**
@@ -113,9 +144,14 @@ export class DB {
      * @param data - The data to update.
      */
     public static async update(table: string, id: string, data: { [key: string]: string | number }): Promise<void> {
-        console.log(`Table ${table} - DB.Update`);
         await DB.adapter.update(table, id, data);
-        DB.notify(table, 'update', data); // Notify listeners about the update operation
+
+        // Queue the notification instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'update',
+            payload: data
+        });
     }
 
     /**
@@ -124,32 +160,44 @@ export class DB {
      * @param table - The table from which to delete the record.
      * @param id - The ID of the record to delete.
      */
-    public static async delete(table: string, id: string): Promise<void> {
-        console.log(`Table ${table} DELETE ${id}`);
-        DB.adapter.delete(table, id);
+    public static async delete(table: string, id: string | string[]): Promise<void> {
+        const deleted = await DB.adapter.delete(table, id);
+        // Queue the notification instead of triggering it immediately
+        DB.pendingNotifications.push({
+            table,
+            action: 'delete',
+            payload: deleted
+        });
     }
 
     /**
      * Registers a listener for a specific action (insert or update) for a table.
      * 
      * @param table - The table to register the listener for.
-     * @param action - The action type, either 'insert' or 'update'.
+     * @param action - The action type, either 'insert', 'update', 'select', 'delete'.
      * @param listener - The listener function to register.
      */
-    static register(table: string, action: "insert" | "update", listener: Function) {
+    static register(table: string, action: ActionType | ActionType[], listener: Function) {
         if (!DB.listeners[table]) {
-            DB.listeners[table] = { insert: [], update: [] };
+            DB.listeners[table] = { insert: [], update: [], delete: [], select: [] };
         }
-        DB.listeners[table][action].push(listener); // Add the listener for the specific action
+
+        if (Array.isArray(action)) {
+            for (const a of action) {
+                DB.listeners[table][a].push(listener); // Add the listener for the specific action
+            }
+        } else {
+            DB.listeners[table][action].push(listener); // Add the listener for the specific action
+        }
     }
 
     /**
      * Notifies listeners for a specific action (insert or update) for the given table.
      * 
      * @param table - The table whose listeners should be notified.
-     * @param action - The action type, either 'insert' or 'update'.
+     * @param action - The action type, either 'insert', 'update', 'select', 'delete'
      */
-    static async notify(table: string, action: "insert" | "update", payload?: any) {
+    static async notify(table: string, action: ActionType, payload?: any) {
         const tableListeners = DB.listeners[table]?.[action];
         if (tableListeners) {
             for (const listener of tableListeners) {

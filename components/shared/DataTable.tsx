@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import Colors from "@/constant/Color";
 import { ReactElement } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -8,12 +8,12 @@ import { MaterialIcons } from "@expo/vector-icons";
  * @typedef {Object} obj - Generic object type for style properties
  * @typedef {Object} tableData - Structure for table data
  * @property {string[]} columns - Array of column headers
- * @property {Array<{values: string[], styles?: obj}>} cells - Array of row data with optional styles
+ * @property {Array<{values: string[], styles?: obj, onPress?: () => void}>} rows - Array of row data with optional styles and press handler
  */
 type obj = { [key: string]: any };
 type tableData = {
   columns: string[];
-  cells: { values: string[]; styles?: obj }[];
+  rows: { values: any[]; styles?: obj; onPress?: () => void }[];
 };
 
 /**
@@ -24,6 +24,7 @@ type tableData = {
  * - Flexible row data with optional cell styling
  * - Empty state handling with icon
  * - Consistent styling with shadow and rounded corners
+ * - Pressable rows with feedback
  *
  * @param data - Table data including columns and cell values
  * @param headerStyle - Optional custom styles for the header row
@@ -36,20 +37,24 @@ export default function DataTable({
   headerStyle?: obj;
 }) {
   // Map cell data to row components with optional styling
-  let rows: any = data.cells.map((cell: any, i: number) => {
+  let rows: any = data.rows.map((row: any, i: number) => {
     return (
-      <View key={i} style={styles.row}>
-        {cell.values.map((v: string, i: number) => (
-          <Text key={i} style={[styles.cell, cell.styles?.[i]]}>
+      <Pressable
+        key={i}
+        onPress={row.onPress}
+        style={({ pressed }) => [styles.row, pressed && styles.pressedRow]}
+      >
+        {row.values.map((v: string, i: number) => (
+          <Text key={i} style={[styles.cell, row.styles?.[i]]}>
             {v}
           </Text>
         ))}
-      </View>
+      </Pressable>
     );
   });
 
   // Display empty state when no data is available
-  if (data.cells.length === 0) {
+  if (data.rows.length === 0) {
     rows = (
       <View
         style={{
@@ -118,5 +123,9 @@ const styles = StyleSheet.create({
   },
   negative: {
     color: "#d62728", // Red
+  },
+  pressedRow: {
+    backgroundColor: Colors.Card,
+    opacity: 0.7,
   },
 });

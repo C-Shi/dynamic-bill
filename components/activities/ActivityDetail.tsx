@@ -52,20 +52,23 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   // Prepare participant data for the DataTable
   const participantData = {
     columns: ["Name", "Paid", "Owed", "Net"],
-    cells: participants.map((p: any) => {
+    rows: participants.map((p: any) => {
       const paid = p.totalPaid;
       const due = p.totalOwed;
       const net = paid - due;
       return {
-        values: [p.name, dollar(paid), dollar(due), dollar(net)],
+        values: [`👉 ${p.name}`, dollar(paid), dollar(due), dollar(net)],
         styles: [
-          null,
+          { textAlign: "left", marginLeft: 10 },
           null,
           null,
           {
             color: net > 0 ? Colors.Success : Colors.Danger,
           },
         ],
+        onPress: () => {
+          router.push(`/activities/${activity.id}/participants/${p.id}`);
+        },
       };
     }),
   };
@@ -73,14 +76,18 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   // Prepare expense data for the DataTable
   const expenseData = {
     columns: ["Description", "Amount", "Paid By"],
-    cells: expenses.map((e: any) => {
+    rows: expenses.map((e: any) => {
       return {
         values: [
-          e.description,
+          `👉 ${e.description}`,
           dollar(e.amount),
           participants.find((p: Participant) => p.id === e.paidBy)?.name ||
             "Unknown",
         ],
+        styles: [{ textAlign: "left", marginLeft: 10 }],
+        onPress: () => {
+          router.push(`/activities/${activity.id}/expenses/${e.id}`);
+        },
       };
     }),
   };
@@ -101,13 +108,7 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
         />
       ),
       onPress: () => {
-        if (expenses.length > 0) {
-          alert(
-            "Cannot add participant for activities with expenses. This limitation will be removed on v2"
-          );
-        } else {
-          setParticipantModal(true);
-        }
+        setParticipantModal(true);
       },
     },
     {

@@ -1,7 +1,8 @@
 import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Activity } from "@/model/Activity";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 import { Participant } from "@/model/Participant";
+import { Alert } from "react-native";
 
 /**
  * Type definition for the Activity Context
@@ -120,7 +121,6 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
    * @param activity Activity to be added
    */
   const add = async (activity: Activity): Promise<any> => {
-    /** @todo Optimize save process - data consistency between state and db */
     try {
       const entity = activity.toEntity();
       const participants = activity.participants.map((p) =>
@@ -129,12 +129,16 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
           activityId: activity.id,
         }).toEntity()
       );
-      await DB.insert("activities", entity);
-      await DB.insert("participants", participants);
+      await DB.transaction(async () => {
+        await DB.insert("activities", entity);
+        if (participants.length > 0) {
+          await DB.insert("participants", participants);
+        }
+      });
       dispatch({ type: "ADD_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error adding activity:", error);
-      throw error;
+      Alert.alert("Error adding activity");
     }
   };
 
@@ -144,7 +148,9 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
    */
   const remove = async (activity: Activity): Promise<any> => {
     try {
-      await DB.delete("activities", activity.id);
+      await DB.transaction(async () => {
+        await DB.delete("activities", activity.id);
+      });
       dispatch({ type: "REMOVE_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error removing activity:", error);
@@ -174,7 +180,9 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   const modify = async (activity: Activity): Promise<Activity> => {
     try {
       dispatch({ type: "UPDATE_ACTIVITY", payload: activity });
-      await DB.update("activities", activity.id, activity.toEntity());
+      await DB.transaction(async () => {
+        await DB.update("activities", activity.id, activity.toEntity());
+      });
       return activity;
     } catch (error) {
       console.error("Error modifying activity:", error);

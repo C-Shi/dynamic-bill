@@ -1,12 +1,6 @@
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 import { useContext, useState } from "react";
-import {
-  Dimensions,
-  View,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
+import { Dimensions, View, StyleSheet, ScrollView } from "react-native";
 import Colors from "@/constant/Color";
 import ActivitySettlement from "@/components/activities/ActivitySettlement";
 import { useHeaderHeight } from "@react-navigation/elements";

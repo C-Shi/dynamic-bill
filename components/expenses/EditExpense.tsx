@@ -1,7 +1,7 @@
 import { ActivityContext } from "@/context/ActivityContext";
 import { Expense } from "@/model/Expense";
 import { useRouter } from "expo-router";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -19,51 +19,62 @@ import {
   Checkbox,
   Divider,
 } from "react-native-paper";
-import { Activity } from "@/model/Activity";
 import { Participant } from "@/model/Participant";
 import { DB } from "@/utils/db";
 import { ParticipantExpense } from "@/model/ParticipantExpense";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
 
-/**
- * NewExpense Component
- * A form for adding new expenses to an activity.
- * Features:
- * - Expense description and amount input
- * - Payer selection via dropdown menu
- * - Participant selection for expense sharing
- * - Validation for required fields
- * - Database integration for expense storage
- *
- * @param activity - The activity to add the expense to
- * @param participants - List of participants in the activity
- */
-export default function NewExpense({
-  activity,
-  participants,
+export default function EditExpense({
+  aid,
+  eid,
 }: {
-  activity: Activity;
-  participants: Participant[];
+  aid: string;
+  eid: string;
 }) {
   const router = useRouter();
-  const { set } = useContext(CurrentActivityDetailContext);
-  const { update } = useContext(ActivityContext);
+  const { set, expenses, participants, update } = useContext(
+    CurrentActivityDetailContext
+  );
+  const { update: updateActivity } = useContext(ActivityContext);
+  const expense = expenses.find((e: Expense) => e.id === eid)!;
 
   // State for new expense details
   const [newExpense, setNewExpense] = useState({
-    description: "",
-    amount: "",
-    date: new Date().toISOString(),
-    paidBy: undefined,
+    id: expense.id,
+    description: expense.description,
+    amount: String(expense.amount),
+    paidBy: expense.paidBy,
   });
 
   // State for tracking which participants the expense is for
-  const [newExpenseFor, setNewExpenseFor] = useState(
-    participants.map((p) => p.id)
-  );
+  const [newExpenseFor, setNewExpenseFor] = useState<string[]>([]);
+
+  // State for tracking current participants the expense is for
+  const [oldExpenseFor, setOldExpenseFor] = useState<ParticipantExpense[]>([]);
 
   // State for controlling the payer selection menu
   const [menuVisible, setMenuVisible] = useState(false);
+
+  useEffect(() => {
+    async function getPE() {
+      const pes = await DB.get("participant_expenses", {
+        expense_id: ["=", eid],
+      });
+
+      const expenseFor = participants
+        .filter((participant: Participant) =>
+          pes.some((ref: any) => ref.participant_id === participant.id)
+        )
+        .map((p) => p.id);
+
+      // Old expense for set a list of full participant_expenses
+      setOldExpenseFor(pes.map((pe: any) => new ParticipantExpense(pe)));
+      // new Expense for set a collection of participant_id ONLY
+      setNewExpenseFor(expenseFor);
+    }
+
+    getPE();
+  }, [eid]);
 
   // Update the payer of the expense
   function onPaidByChange(v: any) {
@@ -120,36 +131,61 @@ export default function NewExpense({
     return true;
   }
 
-  // Submit the new expense to the database
+  // Check expense diff and update
   async function onSubmit() {
     if (!validated()) {
       return;
     }
-    const expData = new Expense({
-      ...newExpense,
-      activityId: activity.id,
-      date: new Date(newExpense.date),
-    }).toEntity();
+    // participant expense to add
+    const oldIds = oldExpenseFor.map((item) => item.participantId);
+    const toAdd: any[] = newExpenseFor
+      .filter((pid) => !oldIds.includes(pid))
+      .map((pid) =>
+        new ParticipantExpense({
+          participantId: pid,
+          expenseId: eid,
+        }).toEntity()
+      );
+    // participant expense to remove
+    const toRemove: string[] = oldExpenseFor
+      .filter((pe) => !newExpenseFor.includes(pe.participantId))
+      .map((item) => item.id);
 
-    const peData = newExpenseFor.map((e) => {
-      return new ParticipantExpense({
-        expenseId: expData.id,
-        participantId: e,
-      }).toEntity();
-    });
-
+    // update database records
     try {
       await DB.transaction(async () => {
-        await DB.insert("expenses", expData);
-        await DB.insert("participant_expenses", peData);
+        await DB.update("expenses", newExpense.id, {
+          description: newExpense.description,
+          paid_by: newExpense.paidBy,
+          // activity_id is for observer to correctly locate item
+          activity_id: aid,
+          amount: parseFloat(newExpense.amount),
+        });
+        if (toAdd.length > 0) {
+          await DB.insert("participant_expenses", toAdd);
+        }
+        if (toRemove.length > 0) {
+          await DB.delete("participant_expenses", toRemove);
+        }
       });
-    } catch (e) {
-      Alert.alert("Add Expense Failed");
-    } finally {
-      await set(activity.id);
-      await update(activity.id);
-      router.back();
+    } catch (error) {
+      if (__DEV__) {
+        console.error(error);
+      }
+      Alert.alert("Unexpected Error during update.");
     }
+
+    // update ActivityContext with this specific activity
+    await updateActivity(aid);
+    // update CurrentActicityDetail with participants (catched total po change) and expenses (pe change)
+    const newParticipantList = await DB.get("participants", {
+      activity_id: ["=", aid],
+    });
+    update.participants(newParticipantList.map((a: any) => new Participant(a)));
+
+    update.expense(new Expense(newExpense));
+
+    router.back();
   }
 
   return (
@@ -241,7 +277,7 @@ export default function NewExpense({
           style={styles.submitButton}
           labelStyle={styles.submitButtonLabel}
         >
-          Add Expense
+          Update Expense
         </Button>
       </ScrollView>
     </PaperProvider>

@@ -1,7 +1,7 @@
 import Colors from "@/constant/Color";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from "react-native";
 import TouchableCard from "@/components/shared/TouchableCard";
 
@@ -76,8 +77,6 @@ export default function ActivityForm({
   const [activityTypes, setActivityTypes] = useState([]);
   const [newParticipant, setNewParticipant] = useState("");
 
-  console.log(activity);
-
   // Load activity types from database on mount
   useEffect(() => {
     (async () => {
@@ -129,7 +128,7 @@ export default function ActivityForm({
 
     const capArr = participants!.map((p: string) => p.toUpperCase());
     if (capArr.includes(newParticipant.trim().toUpperCase())) {
-      alert("Duplicate Participant");
+      Alert.alert("Duplicate Participant");
       setNewParticipant("");
       return;
     }

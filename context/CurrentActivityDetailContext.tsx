@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useState } from "react";
 import { Participant } from "@/model/Participant";
 import { Expense } from "@/model/Expense";
-import { DB } from "@/utils/DB";
+import { DB } from "@/utils/db";
 
 /**
  * Type definition for the add operations in the context
@@ -21,6 +21,16 @@ type AddOperations = {
 };
 
 /**
+ * Type definition for update operations in the context
+ */
+type UpdateOperations = {
+  participants: (participants: Participant[]) => void;
+  participant: (participant: Participant) => void;
+  expenses: (expenses: Expense[]) => void;
+  expense: (expense: Expense) => void;
+};
+
+/**
  * Type definition for the Current Activity Detail Context
  * Provides methods and state for managing the currently selected activity's details
  */
@@ -36,6 +46,9 @@ type CurrentActivityDetailContextType = {
 
   /** Operations for adding participants and expenses */
   add: AddOperations;
+
+  /** Operations of updating participants and expenses */
+  update: UpdateOperations;
 
   /** Set the current activity and load its details */
   set: (id: string) => Promise<void>;
@@ -122,12 +135,44 @@ export function CurrentActivityDetailContextProvider({
     expense: (expense: Expense) =>
       setExpenses((prev: Expense[]) => [...prev, expense]),
   };
+  /**
+   * Operations for updating existing participants and expenses
+   */
+  const update = {
+    participant: (participant: Participant) => {
+      setParticipants((prev: Participant[]) => {
+        return prev.map((p) => {
+          if (p.id !== participant.id) {
+            return p;
+          }
+          return participant;
+        });
+      });
+    },
+    participants: (participants: Participant[]) => {
+      setParticipants(participants);
+    },
+    expenses: (expenses: Expense[]) => {
+      setExpenses(expenses);
+    },
+    expense: (expense: Expense) => {
+      setExpenses((prev: Expense[]) => {
+        return prev.map((e) => {
+          if (e.id !== expense.id) {
+            return e;
+          }
+          return expense;
+        });
+      });
+    },
+  };
 
   const value: CurrentActivityDetailContextType = {
     activityId,
     participants,
     expenses,
     add,
+    update,
     set,
   };
 

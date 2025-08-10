@@ -1,5 +1,6 @@
 import { Model } from './Core';
 
+
 /**
  * Represents an expense in an activity
  * Tracks expense details including amount, payer, and associated activity
@@ -34,7 +35,9 @@ export class Expense extends Model {
         this.paidBy = expense.paid_by ?? expense.paidBy;
 
         this.description = expense.description;
-        this.amount = expense.amount;
+        this.amount = typeof expense.amount === "string"
+            ? parseFloat(expense.amount)
+            : expense.amount;
         this.date = expense.date;
     }
 
