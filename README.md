@@ -14,7 +14,8 @@ DynamicBill is a React Native application that helps groups manage shared expens
 ### Core Features
 
 - 🎯 **Activity Management**: Create and manage different activities/events with multiple participants
-- 💰 **Expense Tracking**: Add and track expenses for each activity
+- 💰 **Expense Tracking**: Add, View, Update and Delete expense information
+- 🧑‍⚖️ **Participant**: Add, View, Update and Delete event participant
 - 🤝 **Smart Settlement**: Two settlement strategies available:
   - Minimum Transaction: Settles debts with the fewest possible transactions
   - Proportional One-To-Many: Distributes debts proportionally among participants
@@ -22,6 +23,9 @@ DynamicBill is a React Native application that helps groups manage shared expens
   - Contribution charts showing who paid what
   - Utilization tracking for budgeted activities
   - Settlement visualization
+  - Participant breakdown for each expense
+  - Pyment distribution for each payer
+  - Insights on spending pattern
 - 💵 **Budget Management**: Set and track budgets for activities
 - ⚡ **Real-time Updates**: Automatic calculations of balances and settlements
 
