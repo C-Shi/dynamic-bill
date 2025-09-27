@@ -126,6 +126,26 @@ const MIGRATIONS = [
                 `)
             })
         }
+    },
+    {
+        version: 3,
+        up: async () => {
+            const db = await SQLiteAdapter.db()
+            await db.withTransactionAsync(async () => {
+                await db.execAsync(`
+                    ALTER TABLE activities ADD COLUMN status TEXT CHECK (status IN ('ACTIVE', 'ARCHIVED')) DEFAULT 'ACTIVE';
+                `)
+            })
+        },
+        down: async () => {
+            // Rollback migration 3: Remove activity status
+            const db = await SQLiteAdapter.db()
+            await db.withTransactionAsync(async () => {
+                await db.execAsync(`
+                    ALTER TABLE activities DROP COLUMN status;
+                `)
+            })
+        }
     }
 ]
 
