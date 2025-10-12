@@ -106,7 +106,7 @@ export default function ExpenseDetail({
 
             // refetch participants detail because the aggregated value has changed
             const newParticipantList = await DB.get("participants", {
-              activity_id: ["=", aid],
+              activityId: ["=", aid],
             });
             update.participants(
               newParticipantList.map((a: any) => new Participant(a))
@@ -114,7 +114,7 @@ export default function ExpenseDetail({
 
             // refetch expenses list
             const newExpenseList = await DB.get("expenses", {
-              activity_id: ["=", aid],
+              activityId: ["=", aid],
             });
             update.expenses(newExpenseList.map((a: any) => new Expense(a)));
 

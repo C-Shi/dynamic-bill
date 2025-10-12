@@ -27,6 +27,9 @@ export class Activity extends Model {
     /** Total amount spent in the activity */
     totals: number = 0;
 
+    /** Last Time the activity status change */
+    lastStatusChangedAt: Date
+
     /**
      * Creates a new activity instance
      * @param activity Optional initialization data
@@ -39,6 +42,7 @@ export class Activity extends Model {
         this.type = activity?.type;
         this.totals = activity?.totals ?? 0;
         this.status = activity?.status ?? "ACTIVE";
+        this.lastStatusChangedAt = activity?.lastStatusChangedAt ? new Date(activity.lastStatusChangedAt) : new Date();
         // Handle participants data
         if (activity?.participants) {
             this.participants = Array.isArray(activity.participants)
@@ -58,8 +62,9 @@ export class Activity extends Model {
             budget: this.budget ?? null,
             note: this.note ?? null,
             type: this.type ?? 'Other',
-            created_at: this.createdAt.toISOString(),
+            createdAt: this.createdAt.toISOString(),
             status: this.status ?? "ACTIVE",
+            lastStatusChangedAt: this.lastStatusChangedAt.toISOString()
         }
     }
 

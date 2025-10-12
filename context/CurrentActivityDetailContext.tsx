@@ -88,8 +88,8 @@ export function CurrentActivityDetailContextProvider({
 
     try {
       const [participantsResult, expensesResult] = await Promise.allSettled([
-        DB.get("participants", { activity_id: ["=", id] }),
-        DB.get("expenses", { activity_id: ["=", id] }),
+        DB.get("participants", { activityId: ["=", id] }),
+        DB.get("expenses", { activityId: ["=", id] }),
       ]);
 
       // Handle participants data

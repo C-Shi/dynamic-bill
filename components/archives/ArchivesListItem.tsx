@@ -1,25 +1,18 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import Avatar from "@/components/shared/Avatar";
-import Colors from "@/constant/Color";
+import Colors, { lightenColor } from "@/constant/Color";
 import { FontAwesome } from "@expo/vector-icons";
 import { Activity } from "@/model/Activity";
 import { useRouter } from "expo-router";
 import { ActivityContext } from "@/context/ActivityContext";
 
 /**
- * ActivityListItem Component
+ * ArchiveListItem Component
  * Displays a single activity in a list format.
- * Features:
- * - Activity title and total amount
- * - Creation date and participant count
- * - Budget information (if available)
- * - Participant avatars with overflow indicator
- * - Delete functionality with confirmation
  *
  * @param activity - The activity object to display
  */
 export default function ArchivesListItem({ activity }: { activity: Activity }) {
-  const router = useRouter();
   const participants = activity.participants;
   // Show only first 4 participants, with a count for the rest
   const visibleParticipant = participants.slice(0, 4);
@@ -32,52 +25,35 @@ export default function ArchivesListItem({ activity }: { activity: Activity }) {
     <TouchableOpacity
       style={styles.container}
       onPress={() => {
-        router.push(`/activities/${activity.id}`);
+        console.log("click archives");
       }}
     >
       {/* Activity Title and Total Amount */}
       <View style={styles.summaryLine}>
         <Text style={styles.activityName}>{activity.title}</Text>
-        <Text style={styles.totalAmount}>{activity.totalAmountDisplay}</Text>
       </View>
 
       {/* Activity Details */}
-      <View style={styles.detailLine}>
+      <View>
+        <Text style={styles.detail}>{participants.length} participant(s)</Text>
         <Text style={styles.detail}>
-          {participants.length} people {`\u2022`} Created on:{" "}
-          {activity.createdAt.toLocaleDateString()}
+          {activity.totalAmountDisplay}/{activity.budgetAmountDisplay}
         </Text>
-        {activity.budget && (
-          <Text style={styles.detail}>
-            Budget: {activity.budgetAmountDisplay!}
-          </Text>
-        )}
+        <Text style={styles.detail}>
+          Closed on: {activity.lastStatusChangedAt.toDateString()}
+        </Text>
+        <Text style={styles.detail}>
+          Event Last for
+          {activity.createdAt.getTime()}{" "}
+          {activity.lastStatusChangedAt.getTime()} {new Date().getTime()}
+        </Text>
       </View>
 
       {/* Participant Avatars and Delete Button */}
-      <View style={styles.participantLine}>
-        <View style={styles.participants}>
-          {/* Display first 4 participants */}
-          {visibleParticipant.map((p: string, index: number): any => (
-            <Avatar
-              key={index}
-              name={p}
-              style={{
-                marginLeft: index === 0 ? 0 : -10,
-                zIndex: 10 + index,
-              }}
-            />
-          ))}
-          {/* Show count of remaining participants */}
-          {invisibleParticipantCount > 0 && (
-            <View style={styles.extraAvatar}>
-              <Text style={styles.extraText}>+{invisibleParticipantCount}</Text>
-            </View>
-          )}
+      <View style={styles.statusLine}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>Completed</Text>
         </View>
-        <TouchableOpacity hitSlop={10}>
-          <FontAwesome name="trash" size={26} color={Colors.Danger} />
-        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -92,8 +68,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   summaryLine: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginBottom: 10,
   },
   activityName: {
@@ -101,46 +75,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
-  totalAmount: {
-    color: Colors.Primary,
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  detailLine: {
-    marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
   detail: {
     color: Colors.SubText,
+    marginBottom: 10,
     fontSize: 12,
   },
-  participantLine: {
+  statusLine: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
   },
-  participants: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
+  badge: {
+    backgroundColor: lightenColor(Colors.Success, 75),
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 15,
   },
-  avatarWrapper: {
-    zIndex: 1,
-  },
-  extraAvatar: {
-    backgroundColor: Colors.SubText,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: -10,
-    zIndex: 100,
-    borderWidth: 2,
-    borderColor: "white",
-  },
-  extraText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
+  badgeText: {
+    color: Colors.Success,
+    fontWeight: "700",
+    fontSize: 11,
   },
 });

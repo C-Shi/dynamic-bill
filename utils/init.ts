@@ -4,16 +4,16 @@ export async function init() {
     // Register observers outside of transaction
     DB.register("expenses", "insert", (payload: any) => {
         const aid = Array.isArray(payload)
-            ? payload[0].activity_id
-            : payload.activity_id;
+            ? payload[0].activityId
+            : payload.activityId;
         DB.query(
             `
           UPDATE participants SET 
-          total_paid = (
+          totalPaid = (
               SELECT COALESCE(SUM(e.amount), 0)
               FROM expenses e
-              WHERE e.paid_by = participants.id
-          ) WHERE activity_id = ?
+              WHERE e.paidBy = participants.id
+          ) WHERE activityId = ?
         `,
             [aid]
         );
@@ -21,29 +21,29 @@ export async function init() {
 
     DB.register("expenses", ["delete", "update"], (payload: any) => {
         const aid = Array.isArray(payload)
-            ? payload[0].activity_id
-            : payload.activity_id;
+            ? payload[0].activityId
+            : payload.activityId;
         DB.query(
             `
           UPDATE participants SET 
-          total_paid = (
+          totalPaid = (
               SELECT COALESCE(SUM(e.amount), 0)
               FROM expenses e
-              WHERE e.paid_by = participants.id
+              WHERE e.paidBy = participants.id
           ),
-          total_owed = (
+          totalOwed = (
               SELECT COALESCE(SUM(
                 e.amount / (
                     SELECT COUNT(*)
                     FROM participant_expenses pe2
-                    WHERE pe2.expense_id = e.id
+                    WHERE pe2.expenseId = e.id
                 )
               ), 0)
               FROM expenses e
-              JOIN participant_expenses pe ON pe.expense_id = e.id
-              WHERE pe.participant_id = participants.id
+              JOIN participant_expenses pe ON pe.expenseId = e.id
+              WHERE pe.participantId = participants.id
             )
-           WHERE activity_id = ?
+           WHERE activityId = ?
         `,
             [aid]
         );
@@ -53,24 +53,24 @@ export async function init() {
 
     DB.register("participants", ["insert", "delete"], (payload: any) => {
         const aid = (Array.isArray(payload)
-            ? payload[0].activity_id
-            : payload.activity_id);
+            ? payload[0].activityId
+            : payload.activityId);
         DB.query(
             `
           UPDATE participants SET
-          total_owed = (
+          totalOwed = (
               SELECT COALESCE(SUM(
                 e.amount / (
                     SELECT COUNT(*) 
                     FROM participant_expenses pe2 
-                    WHERE pe2.expense_id = e.id
+                    WHERE pe2.expenseId = e.id
                 )
               ), 0)
               FROM expenses e
-              JOIN participant_expenses pe ON pe.expense_id = e.id
-              WHERE pe.participant_id = participants.id
+              JOIN participant_expenses pe ON pe.expenseId = e.id
+              WHERE pe.participantId = participants.id
             )
-          WHERE activity_id = ?;
+          WHERE activityId = ?;
         `,
             [aid]
         );
@@ -78,22 +78,22 @@ export async function init() {
 
     DB.register("participant_expenses", ["insert", "delete"], (payload: any) => {
         const pid = Array.isArray(payload)
-            ? payload.map((pe) => pe.participant_id)
-            : [payload.participant_id];
+            ? payload.map((pe) => pe.participantId)
+            : [payload.participantId];
         DB.query(
             `
           UPDATE participants SET
-          total_owed = (
+          totalOwed = (
               SELECT COALESCE(SUM(
                 e.amount / (
                     SELECT COUNT(*) 
                     FROM participant_expenses pe2 
-                    WHERE pe2.expense_id = e.id
+                    WHERE pe2.expenseId = e.id
                 )
               ), 0)
               FROM expenses e
-              JOIN participant_expenses pe ON pe.expense_id = e.id
-              WHERE pe.participant_id = participants.id
+              JOIN participant_expenses pe ON pe.expenseId = e.id
+              WHERE pe.participantId = participants.id
             )
           WHERE id IN (${pid.map(() => "?").join(", ")});
         `,

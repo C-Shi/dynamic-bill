@@ -25,7 +25,7 @@ const MIGRATIONS = [
                         budget REAL DEFAULT NULL,
                         note TEXT,
                         type TEXT DEFAULT 'Other',
-                        created_at TIMESTAMP NOT NULL
+                        createdAt TIMESTAMP NOT NULL
                     );
                 `)
 
@@ -33,11 +33,11 @@ const MIGRATIONS = [
                     CREATE TABLE IF NOT EXISTS participants (
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
-                        activity_id TEXT NOT NULL,
-                        total_paid REAL DEFAULT 0,
-                        total_owed REAL DEFAULT 0,
-                        created_at TIMESTAMP NOT NULL,
-                        FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
+                        activityId TEXT NOT NULL,
+                        totalPaid REAL DEFAULT 0,
+                        totalOwed REAL DEFAULT 0,
+                        createdAt TIMESTAMP NOT NULL,
+                        FOREIGN KEY (activityId) REFERENCES activities(id) ON DELETE CASCADE
                     );
                 `)
 
@@ -46,23 +46,23 @@ const MIGRATIONS = [
                         id TEXT PRIMARY KEY,
                         description TEXT NOT NULL,
                         amount REAL NOT NULL,
-                        paid_by TEXT NOT NULL,
-                        activity_id TEXT NOT NULL,
+                        paidBy TEXT NOT NULL,
+                        activityId TEXT NOT NULL,
                         date TEXT NOT NULL,
-                        created_at TIMESTAMP NOT NULL,
-                        FOREIGN KEY (paid_by) REFERENCES participants(id),
-                        FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
+                        createdAt TIMESTAMP NOT NULL,
+                        FOREIGN KEY (paidBy) REFERENCES participants(id),
+                        FOREIGN KEY (activityId) REFERENCES activities(id) ON DELETE CASCADE
                     );
                 `)
 
                 await db.execAsync(`
                     CREATE TABLE IF NOT EXISTS participant_expenses (
                         id TEXT PRIMARY KEY,
-                        participant_id TEXT NOT NULL,
-                        expense_id TEXT NOT NULL,
-                        created_at TIMESTAMP NOT NULL,
-                        FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE,
-                        FOREIGN KEY (expense_id) REFERENCES expenses(id) ON DELETE CASCADE
+                        participantId TEXT NOT NULL,
+                        expenseId TEXT NOT NULL,
+                        createdAt TIMESTAMP NOT NULL,
+                        FOREIGN KEY (participantId) REFERENCES participants(id) ON DELETE CASCADE,
+                        FOREIGN KEY (expenseId) REFERENCES expenses(id) ON DELETE CASCADE
                     );
                 `)
 
@@ -146,6 +146,26 @@ const MIGRATIONS = [
                 `)
             })
         }
+    },
+    {
+        version: 4,
+        up: async () => {
+            const db = await SQLiteAdapter.db()
+            await db.withTransactionAsync(async () => {
+                await db.execAsync(`
+                    ALTER TABLE activities ADD COLUMN lastStatusChangedAt TIMESTAMP DEFAULT NULL;
+                `)
+            })
+        },
+        down: async () => {
+            // Rollback migration 3: Remove activity status
+            const db = await SQLiteAdapter.db()
+            await db.withTransactionAsync(async () => {
+                await db.execAsync(`
+                    ALTER TABLE activities DROP COLUMN lastStatusChangedAt;
+                `)
+            })
+        }
     }
 ]
 
@@ -164,7 +184,7 @@ export async function migrate() {
     // Run each migration in sequence
     for (const migration of migrationsToRun) {
         await migration.up()
-        await SQLiteAdapter.query("UPDATE migrations SET version = ?, created_at = ?", [migration.version, new Date().toISOString()])
+        await SQLiteAdapter.query("UPDATE migrations SET version = ?, createdAt = ?", [migration.version, new Date().toISOString()])
     }
 }
 

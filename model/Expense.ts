@@ -29,10 +29,10 @@ export class Expense extends Model {
         super(expense)
 
         // Handle activity ID from different possible sources
-        this.activityId = expense.activity_id ?? expense.activityId ?? null;
+        this.activityId = expense.activityId ?? expense.activityId ?? null;
 
         // Handle payer information from different possible sources
-        this.paidBy = expense.paid_by ?? expense.paidBy;
+        this.paidBy = expense.paidBy ?? expense.paidBy;
 
         this.description = expense.description;
         this.amount = typeof expense.amount === "string"
@@ -48,10 +48,10 @@ export class Expense extends Model {
     toEntity(): { [key: string]: any } {
         return {
             id: this.id,
-            created_at: this.createdAt.toISOString(),
-            activity_id: this.activityId,
+            createdAt: this.createdAt.toISOString(),
+            activityId: this.activityId,
             description: this.description,
-            paid_by: this.paidBy,
+            paidBy: this.paidBy,
             amount: this.amount,
             date: this.date.toISOString()
         }

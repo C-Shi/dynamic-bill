@@ -35,7 +35,7 @@ export class SQLiteAdapter {
             await db.execAsync(`
                 CREATE TABLE IF NOT EXISTS migrations (
                     version INTEGER NOT NULL DEFAULT 0,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
@@ -77,9 +77,9 @@ export class SQLiteAdapter {
 
                 -- Seed activities and participants
                 -- ACTIVITY 1: Movie Night
-                INSERT INTO activities (id, title, note, created_at) VALUES
+                INSERT INTO activities (id, title, note, createdAt) VALUES
                 ('a1', 'Movie Night', 'Watched a new release', '2025-04-01T18:00:00Z');
-                INSERT INTO participants (id, name, activity_id, created_at) VALUES
+                INSERT INTO participants (id, name, activityId, createdAt) VALUES
                 ('p1', 'Alice', 'a1', '2025-04-01T18:01:00Z'),
                 ('p2', 'Bob', 'a1', '2025-04-01T18:01:30Z');
 

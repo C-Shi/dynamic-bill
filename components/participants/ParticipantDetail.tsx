@@ -98,7 +98,7 @@ export default function ParticipantDetails({
 
             // refetch participants detail because the aggregated value has changed
             const newParticipantList = await DB.get("participants", {
-              activity_id: ["=", participant.activityId],
+              activityId: ["=", participant.activityId],
             });
             update.participants(
               newParticipantList.map((a: any) => new Participant(a))

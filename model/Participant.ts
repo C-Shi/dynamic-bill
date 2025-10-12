@@ -26,11 +26,11 @@ export class Participant extends Model {
         this.name = participant.name;
 
         // Handle activity ID from different possible sources
-        this.activityId = participant.activityId ?? participant.activity_id;
+        this.activityId = participant.activityId ?? participant.activityId;
 
         // Handle total amounts from different possible sources
-        this.totalOwed = participant.totalOwed ?? participant.total_owed ?? 0;
-        this.totalPaid = participant.totalPaid ?? participant.total_paid ?? 0;
+        this.totalOwed = participant.totalOwed ?? participant.totalOwed ?? 0;
+        this.totalPaid = participant.totalPaid ?? participant.totalPaid ?? 0;
     }
 
     /**
@@ -41,10 +41,10 @@ export class Participant extends Model {
         return {
             id: this.id,
             name: this.name,
-            activity_id: this.activityId,
-            total_owed: this.totalOwed,
-            total_paid: this.totalPaid,
-            created_at: this.createdAt.toISOString()
+            activityId: this.activityId,
+            totalOwed: this.totalOwed,
+            totalPaid: this.totalPaid,
+            createdAt: this.createdAt.toISOString()
         }
     }
 

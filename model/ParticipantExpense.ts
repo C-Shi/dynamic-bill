@@ -3,11 +3,11 @@ import { Model } from './Core';
 export interface ParticipantExpenseParams {
     id?: string;
     participantId?: string;
-    participant_id?: string;
+    participantId?: string;
     expenseId?: string;
-    expense_id?: string;
+    expenseId?: string;
     createdAt?: Date | string;
-    created_at?: string;
+    createdAt?: string;
 }
 
 export class ParticipantExpense extends Model {
@@ -17,21 +17,21 @@ export class ParticipantExpense extends Model {
     constructor(pe: ParticipantExpenseParams) {
         const normalized = {
             ...pe,
-            createdAt: new Date(pe.createdAt ?? pe.created_at ?? new Date())
+            createdAt: new Date(pe.createdAt ?? pe.createdAt ?? new Date())
         };
 
         super(normalized);
 
-        this.participantId = pe.participantId ?? pe.participant_id!;
-        this.expenseId = pe.expenseId ?? pe.expense_id!;
+        this.participantId = pe.participantId ?? pe.participantId!;
+        this.expenseId = pe.expenseId ?? pe.expenseId!;
     }
 
     toEntity(): { [key: string]: any } {
         return {
             id: this.id,
-            participant_id: this.participantId,
-            expense_id: this.expenseId,
-            created_at: this.createdAt.toISOString(),
+            participantId: this.participantId,
+            expenseId: this.expenseId,
+            createdAt: this.createdAt.toISOString(),
         };
     }
 }

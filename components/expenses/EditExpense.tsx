@@ -58,18 +58,18 @@ export default function EditExpense({
   useEffect(() => {
     async function getPE() {
       const pes = await DB.get("participant_expenses", {
-        expense_id: ["=", eid],
+        expenseId: ["=", eid],
       });
 
       const expenseFor = participants
         .filter((participant: Participant) =>
-          pes.some((ref: any) => ref.participant_id === participant.id)
+          pes.some((ref: any) => ref.participantId === participant.id)
         )
         .map((p) => p.id);
 
       // Old expense for set a list of full participant_expenses
       setOldExpenseFor(pes.map((pe: any) => new ParticipantExpense(pe)));
-      // new Expense for set a collection of participant_id ONLY
+      // new Expense for set a collection of participantId ONLY
       setNewExpenseFor(expenseFor);
     }
 
@@ -156,9 +156,9 @@ export default function EditExpense({
       await DB.transaction(async () => {
         await DB.update("expenses", newExpense.id, {
           description: newExpense.description,
-          paid_by: newExpense.paidBy,
-          // activity_id is for observer to correctly locate item
-          activity_id: aid,
+          paidBy: newExpense.paidBy,
+          // activityId is for observer to correctly locate item
+          activityId: aid,
           amount: parseFloat(newExpense.amount),
         });
         if (toAdd.length > 0) {
@@ -179,7 +179,7 @@ export default function EditExpense({
     await updateActivity(aid);
     // update CurrentActicityDetail with participants (catched total po change) and expenses (pe change)
     const newParticipantList = await DB.get("participants", {
-      activity_id: ["=", aid],
+      activityId: ["=", aid],
     });
     update.participants(newParticipantList.map((a: any) => new Participant(a)));
 
