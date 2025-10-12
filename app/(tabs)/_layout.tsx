@@ -51,6 +51,23 @@ export default function Layout() {
           ),
         }}
       ></Tabs.Screen>
+      <Tabs.Screen
+        name="archives"
+        options={{
+          title: "Archives",
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
+          tabBarActiveTintColor: Colors.Secondary,
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name="archive"
+              size={24}
+              style={focused ? styles.barIconActive : styles.barIconInactive}
+            ></Ionicons>
+          ),
+        }}
+      ></Tabs.Screen>
       {/* <Tabs.Screen
         name="profile"
         options={{

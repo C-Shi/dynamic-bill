@@ -46,4 +46,23 @@ const EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY = `
     WHERE expenses.id = ?;
 `
 
-export { EXPENSE_BREAKDOWN_QUERY, EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY }
+const ACTIVITIES_QUERY = `
+    SELECT a.*, GROUP_CONCAT(DISTINCT p.name) AS participants,
+    (SELECT IFNULL(SUM(amount), 0) FROM expenses e WHERE e.activity_id = a.id) AS totals
+    FROM activities a LEFT JOIN participants p ON a.id = p.activity_id WHERE a.status = ?
+    GROUP BY a.id;
+`
+
+const ACTIVITY_QUERY = `
+      SELECT a.*, GROUP_CONCAT(DISTINCT p.name) AS participants,
+      (SELECT IFNULL(SUM(amount), 0) FROM expenses e WHERE e.activity_id = a.id) AS totals
+      FROM activities a LEFT JOIN participants p ON a.id = p.activity_id 
+      WHERE a.status = ? AND a.id = ? GROUP BY a.id;
+    `
+
+export {
+    EXPENSE_BREAKDOWN_QUERY,
+    EXPENSE_PARTICIPANT_PAYMENT_BREAKDOWN_QUERY,
+    ACTIVITIES_QUERY,
+    ACTIVITY_QUERY
+};

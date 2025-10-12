@@ -18,6 +18,9 @@ export class Activity extends Model {
     /** Optional type identifier for the activity */
     type?: number;
 
+    /** Status of the activity */
+    status?: "ACTIVE" | "ARCHIVED";
+
     /** List of participant names */
     participants: string[] = [];
 
@@ -35,7 +38,7 @@ export class Activity extends Model {
         this.budget = activity?.budget;
         this.type = activity?.type;
         this.totals = activity?.totals ?? 0;
-
+        this.status = activity?.status ?? "ACTIVE";
         // Handle participants data
         if (activity?.participants) {
             this.participants = Array.isArray(activity.participants)
@@ -56,6 +59,7 @@ export class Activity extends Model {
             note: this.note ?? null,
             type: this.type ?? 'Other',
             created_at: this.createdAt.toISOString(),
+            status: this.status ?? "ACTIVE",
         }
     }
 
