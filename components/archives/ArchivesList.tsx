@@ -1,15 +1,7 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
 
 import Colors from "@/constant/Color";
 import { useEffect, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { DB } from "@/utils/db";
 import { Activity } from "@/model/Activity";
 import ArchivesListItem from "./ArchivesListItem";
@@ -25,7 +17,6 @@ import { ACTIVITIES_QUERY } from "@/constant/Query";
  */
 export default function ArchivesList() {
   // Access activities from the global context
-  const router = useRouter();
   const [archives, setArchives] = useState<Activity[]>([]);
 
   useEffect(() => {
@@ -50,7 +41,9 @@ export default function ArchivesList() {
 
   return (
     <ScrollView style={styles.container}>
-      {archives.length > 0 && <Text style={styles.title}>Archives</Text>}
+      {archives.length > 0 && (
+        <Text style={styles.title}>Archived Activities</Text>
+      )}
       {archives.length > 0 ? activityList : <Text>No archives found</Text>}
     </ScrollView>
   );

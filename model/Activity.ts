@@ -98,4 +98,16 @@ export class Activity extends Model {
     get totalParticipant(): number {
         return this.participants.length
     }
+
+    /**
+     * Gets the total Event Duration to settle in days
+     */
+    get daysToSettle(): number {
+        if (this.status !== 'ARCHIVED') {
+            return NaN
+        }
+        const timeDiff = this.lastStatusChangedAt.getTime() - this.createdAt.getTime();
+
+        return timeDiff / (1000 * 60 * 60 * 24)
+    }
 }
