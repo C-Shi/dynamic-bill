@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
 import { Activity } from "@/model/Activity";
@@ -17,7 +18,9 @@ import { useRouter } from "expo-router";
 import AddParticipant from "../participants/AddParticipant";
 import { Participant } from "@/model/Participant";
 import { CurrentActivityDetailContext } from "@/context/CurrentActivityDetailContext";
+import { ActivityContext } from "@/context/ActivityContext";
 import { dollar } from "@/utils/Helper";
+import { DB } from "@/utils/db";
 
 /**
  * ActivityDetail Component
@@ -40,6 +43,8 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
   const { participants, expenses, set } = useContext(
     CurrentActivityDetailContext
   );
+
+  const { remove } = useContext(ActivityContext);
 
   // State for controlling the participant modal
   const [participantModal, setParticipantModal] = useState(false);
@@ -118,6 +123,33 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
     },
   ];
 
+  async function archiveActivity() {
+    Alert.alert(
+      `Done with ${activity.title}?`,
+      "Archiving confirms this activity is finalized and will no longer change.\n\n" +
+        "You can still view its details after archiving, but editing or status updates won't be allowed.\n\n" +
+        "Do you want to archive this activity?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Archive",
+          style: "destructive",
+          onPress: async () => {
+            // Archive activity
+            await DB.update("activities", activity.id, {
+              status: "ARCHIVED",
+            });
+            // Remove this activity from context
+            await remove(activity, false);
+            // need to reset currentActivityContextProvider
+            // Route back to HomeRr
+            router.push("..");
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -195,16 +227,31 @@ export default function ActivityDetail({ activity }: { activity: Activity }) {
       <View style={styles.fabContainer}>
         {/* Settlement Button - Only shown when expenses exist */}
         {expenses.length > 0 && (
-          <TouchableOpacity
-            style={styles.settleBtn}
-            onPress={() => router.push(`/activities/${activity.id}/settlement`)}
-          >
-            <Ionicons
-              name="receipt-outline"
-              size={32}
-              color={Colors.Background}
-            />
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.archiveBtn}
+              onPress={archiveActivity}
+            >
+              <Ionicons
+                name="checkmark-done-outline"
+                size={32}
+                color={Colors.Background}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settleBtn}
+              onPress={() =>
+                router.push(`/activities/${activity.id}/settlement`)
+              }
+            >
+              <Ionicons
+                name="receipt-outline"
+                size={32}
+                color={Colors.Background}
+              />
+            </TouchableOpacity>
+          </>
         )}
         {/* Main FAB Group - Add participant and expense buttons */}
         <FloatingButtonGroup
@@ -331,6 +378,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 6,
     backgroundColor: Colors.Secondary,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6, // for Android
+    marginRight: 10,
+  },
+  archiveBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 60 / 2,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+    backgroundColor: Colors.Success,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

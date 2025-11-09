@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import Avatar from "@/components/shared/Avatar";
 import Colors from "@/constant/Color";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { Activity } from "@/model/Activity";
-import { Key, useContext } from "react";
+import { useContext } from "react";
 import { useRouter } from "expo-router";
 import { ActivityContext } from "@/context/ActivityContext";
+import { DB } from "@/utils/db";
 
 /**
  * ActivityListItem Component
@@ -21,7 +22,7 @@ import { ActivityContext } from "@/context/ActivityContext";
  */
 export default function ActivityListItem({ activity }: { activity: Activity }) {
   const router = useRouter();
-  const { remove } = useContext(ActivityContext);
+  const { remove, update } = useContext(ActivityContext);
   const participants = activity.participants;
   // Show only first 4 participants, with a count for the rest
   const visibleParticipant = participants.slice(0, 4);
@@ -48,6 +49,32 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
         style: "destructive",
       },
     ]);
+  }
+
+  async function archiveActivity() {
+    Alert.alert(
+      `Done with ${activity.title}?`,
+      "Archiving confirms this activity is finalized and will no longer change.\n\n" +
+        "You can still view its details after archiving, but editing or status updates won't be allowed.\n\n" +
+        "Do you want to archive this activity?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Archive",
+          style: "destructive",
+          onPress: async () => {
+            // Archive activity
+            await DB.update("activities", activity.id, {
+              status: "ARCHIVED",
+            });
+            // Remove this activity from context
+            await remove(activity, false);
+            // Route back to Home
+            router.push("/");
+          },
+        },
+      ]
+    );
   }
 
   return (
@@ -97,9 +124,14 @@ export default function ActivityListItem({ activity }: { activity: Activity }) {
             </View>
           )}
         </View>
-        <TouchableOpacity hitSlop={10} onPress={deleteActivity}>
-          <FontAwesome name="trash" size={26} color={Colors.Danger} />
-        </TouchableOpacity>
+        <View style={styles.btnGroup}>
+          <TouchableOpacity hitSlop={10} onPress={archiveActivity}>
+            <Ionicons name="archive" size={26} color={Colors.Secondary} />
+          </TouchableOpacity>
+          <TouchableOpacity hitSlop={10} onPress={deleteActivity}>
+            <FontAwesome name="trash" size={26} color={Colors.Danger} />
+          </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -164,5 +196,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  btnGroup: {
+    minWidth: 50,
+    maxWidth: 100,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

@@ -1,11 +1,12 @@
 import { ScrollView, StyleSheet, Text } from "react-native";
 
 import Colors from "@/constant/Color";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DB } from "@/utils/db";
 import { Activity } from "@/model/Activity";
 import ArchivesListItem from "./ArchivesListItem";
 import { ACTIVITIES_QUERY } from "@/constant/Query";
+import { useFocusEffect } from "expo-router";
 
 /**
  * ArchivesList Component
@@ -19,9 +20,9 @@ export default function ArchivesList() {
   // Access activities from the global context
   const [archives, setArchives] = useState<Activity[]>([]);
 
-  useEffect(() => {
+  useFocusEffect(() => {
     fetchArchives();
-  }, []);
+  });
 
   async function fetchArchives() {
     const rows = await DB.query(ACTIVITIES_QUERY, ["ARCHIVED"]);

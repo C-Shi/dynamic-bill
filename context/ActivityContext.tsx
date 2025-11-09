@@ -16,7 +16,7 @@ type ActivityContextType = {
   add: (activity: Activity) => Promise<any>;
 
   /** Remove an existing activity */
-  remove: (activity: Activity) => Promise<any>;
+  remove: (activity: Activity, db?: boolean) => Promise<any>;
 
   /** Update an activity's data from the database */
   update: (id: string) => Promise<void>;
@@ -132,12 +132,19 @@ export function ActivityContextProvider({ children }: { children: ReactNode }) {
   /**
    * Removes an activity from the database and context
    * @param activity Activity to be removed
+   * @param db Should activity to be deleted from DB - default to True
    */
-  const remove = async (activity: Activity): Promise<any> => {
+  const remove = async (
+    activity: Activity,
+    db: boolean = true
+  ): Promise<any> => {
     try {
-      await DB.transaction(async () => {
-        await DB.delete("activities", activity.id);
-      });
+      // Default remove will also delete DB record. Optionally passing in a false value to indicate removing from context only
+      if (db) {
+        await DB.transaction(async () => {
+          await DB.delete("activities", activity.id);
+        });
+      }
       dispatch({ type: "REMOVE_ACTIVITY", payload: activity });
     } catch (error) {
       console.error("Error removing activity:", error);
